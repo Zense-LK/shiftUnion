@@ -14,3 +14,6 @@
 4. Build > Build Bundle(s) / APK(s) > Build APK(s). Copy app-debug.apk to your phone.
 
 The app UI lives in www/index.html and works offline (fonts are bundled).
+
+## Updating later
+Upload the changed files to the same repo (commit to main). The build runs again; install the new APK over the old one. Your data is kept because every build is signed with the same key (android/app/shifttracker.keystore). Never uninstall the app first, and use Config > Backup before big updates.
