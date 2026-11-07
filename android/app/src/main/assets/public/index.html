@@ -176,7 +176,7 @@ body[data-corner=square] .stat,body[data-corner=square] .chip,body[data-corner=s
   <div style="display:none">
   </div>
 
-  <div class="panel hide" id="cfg"><div class="lbl">Configuration</div><div id="cfgf"></div><button class="btn sm" id="save">SAVE</button></div>
+  <div class="panel hide" id="cfg"><div class="lbl">Configuration</div><div id="cfgf"></div><button class="btn sm" id="save">SAVE</button><h2 style="margin-top:20px">BACKUP</h2><div class="note">Copy your data into Notes or WhatsApp before big changes. Paste it back here to restore.</div><textarea id="bk" rows="4" style="width:100%;margin-top:8px;background:rgba(10,4,28,.8);border:1px solid var(--line);color:var(--tx);padding:8px;font-size:12px"></textarea><button class="btn sm" id="bkc">COPY BACKUP</button><button class="btn sm" id="bkr">RESTORE FROM TEXT</button></div>
   <div class="panel hide" id="dsg"><div class="lbl">Design studio · changes apply live</div><div id="dsf"></div></div>
 
   <h2>MATCH HISTORY <button id="addm">+ ADD</button></h2>
@@ -363,7 +363,7 @@ function rip(el,ev){const r=el.getBoundingClientRect(),s=document.createElement(
 document.addEventListener('pointerdown',ev=>{
  const t=ev.target;beep();hap();
  const f=document.createElement('div');f.className='fr';f.style.left=ev.clientX+'px';f.style.top=ev.clientY+'px';document.body.appendChild(f);setTimeout(()=>f.remove(),750);
- if(t.closest('input,select,option'))return;
+ if(t.closest('input,select,option,textarea'))return;
  const el=t.closest('.stat,.chip,.btn,.row,.gear,.panel,.badge,.logo,.ring,.strip,.tag,h2,.wb,.today,.eq,.pill,label,.lbl');
  if(el){if(el.matches('.stat,.chip,.btn,.row,.gear,.panel,h2 button'))rip(el,ev);fx(el);burst(ev.clientX,ev.clientY,5)}
  else{burst(ev.clientX,ev.clientY,16);const g=$('#bgt');g.style.animation='none';void g.offsetWidth;g.style.animation='bgp .5s'}
@@ -400,6 +400,8 @@ function week(grow){
  box.innerHTML=days.map((k,i)=>{const h=Math.min(100,k.tot/12*100),dd=new Date(k.d);return `<div class="wb${i==6?' today':''}" data-r="${dd.toLocaleDateString([],{weekday:'short',day:'numeric',month:'short'})}: ${k.tot.toFixed(1)}h worked · ${k.ot.toFixed(1)}h OT"><div class="bw"><div class="bar" data-h="${h}" style="height:${first?0:h}%"><b class="o" style="flex:${k.ot} 0 0"></b><b style="flex:${Math.max(0,k.tot-k.ot)} 0 0"></b></div></div><span>${dd.toLocaleDateString([],{weekday:'narrow'})}</span></div>`}).join('');
  if(first)requestAnimationFrame(()=>requestAnimationFrame(()=>box.querySelectorAll('.bar').forEach(b=>b.style.height=b.dataset.h+'%')));
 }
+$('#bkc').onclick=()=>{const j=JSON.stringify({log:L,st2:S,ds:DS,pick});$('#bk').value=j;$('#bk').select();try{navigator.clipboard.writeText(j)}catch(e){try{document.execCommand('copy')}catch(e2){}}$('#bkc').textContent='COPIED \u2713';setTimeout(()=>$('#bkc').textContent='COPY BACKUP',1500)};
+$('#bkr').onclick=()=>{try{const o=JSON.parse($('#bk').value);if(!Array.isArray(o.log))throw 0;sv('log',o.log);if(o.st2)sv('st2',o.st2);if(o.ds)sv('ds',o.ds);if(o.pick)sv('pick',o.pick);location.reload()}catch(e){$('#bk').value='Paste a valid backup here first'}};
 L.forEach(e=>{if(e.t==='15')e.t='N';if(e.t2==='15')e.t2='N'});if(pick==='15')pick='N';
 const _l=log;log=()=>{_l();week(true)};
 apply();dsUI();chips();log();stats();live();loop();

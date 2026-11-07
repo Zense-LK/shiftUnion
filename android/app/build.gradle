@@ -1,6 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file('shifttracker.keystore')
+            storePassword 'shift1234'
+            keyAlias 'shift'
+            keyPassword 'shift1234'
+        }
+    }
     namespace "com.zense.shifttracker"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
