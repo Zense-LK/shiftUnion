@@ -1,0 +1,9 @@
+{
+	"appId": "com.zense.shifttracker",
+	"appName": "Shift Tracker",
+	"webDir": "www",
+	"backgroundColor": "#2a1260",
+	"android": {
+		"backgroundColor": "#2a1260"
+	}
+}
