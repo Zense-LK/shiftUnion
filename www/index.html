@@ -5,7 +5,7 @@
 <script>try{if(localStorage.getItem('ui')==='classic'){location.replace('classic.html')}}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f3edfa">
-<title>SHIFT//TRACKER v3.2 preview</title>
+<title>SHIFT//TRACKER v3.2 A06 lively</title>
 <link rel="stylesheet" href="fonts2.css">
 <style>
 @property --b1{syntax:'<color>';inherits:true;initial-value:#d9c8ff}@property --b2{syntax:'<color>';inherits:true;initial-value:#bcd6ff}@property --b3{syntax:'<color>';inherits:true;initial-value:#e4f5b8}
@@ -164,6 +164,42 @@ body.dark .nav{box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 calc(16px*var(--d
 .nxr{display:flex;align-items:center;gap:12px;padding:7px 0}.nxr .d{width:34px;font-weight:700;font-size:15px;line-height:1.1}.nxr .bar2{height:10px;border-radius:5px;background:rgba(127,127,127,.2);overflow:hidden;margin-bottom:5px}.nxr .bar2 i{display:block;height:100%;border-radius:5px;background:var(--p);transition:width .9s cubic-bezier(.2,1.2,.3,1)}.nxr b{min-width:52px;text-align:right}
 .pl{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid rgba(127,127,127,.18)}.pl:first-child{border-top:0}.pl .d{width:36px;font-weight:700}.pl .grow{font-size:14px}.pi{display:flex;gap:12px;align-items:flex-start;padding:9px 0;font-size:14px;line-height:1.35}.pi .ms{font-size:20px;flex:none;color:var(--p)}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+
+/* Galaxy A06 / low-end Android performance mode
+   Preserve layout and functionality while minimizing repaint and layer churn. */
+body{transition:background-color .15s,color .15s!important}
+.bgl .bl{animation:none!important;will-change:auto!important;transform:none!important;opacity:.55!important}
+.bgw{will-change:auto!important;transform:none!important}
+.glow,body.live .glow{animation:none!important;opacity:.12!important;will-change:auto!important}
+/* Disable global content entrance animations, including staggered children. */
+section,section>*{animation:none!important}
+/* Avoid costly filter compositing on decorative glass surfaces. */
+.glass i{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+/* Keep card hierarchy with small, inexpensive static shadows. */
+.card,.item,.tcard,.search,body.dark .card,body.dark .item,body.dark .tcard,body.dark .search{box-shadow:0 2px 7px rgba(0,0,0,.08)!important}
+.nav,body.dark .nav{box-shadow:0 3px 12px rgba(0,0,0,.15)!important}
+/* Stop perpetual embellishments while keeping controls responsive. */
+.shine:after,.cb[data-av] .ck,.nav .on svg *,body.live .cb.spin .ck,.wave .wv{animation:none!important}
+/* Hardware-friendly, quicker interaction transitions. */
+.dt{transition:background-color .15s,color .15s,border-radius .15s!important}
+.sheet{transition:transform .22s ease-out!important}
+
+/* A06 lively mode: transform/opacity animations only on small, short-lived surfaces. */
+/* Keep original per-tab color mixes, but no full-viewport animated gradient layers. */
+.bgl .bl{animation:none!important;filter:none!important;opacity:.62!important}
+/* Small breathing indicator only when on duty; avoids animating the 110vmin glow. */
+.glow,body.live .glow{animation:none!important;opacity:.11!important}
+body.live[data-tab="home"] .live-ch i{animation:a06-pulse 2.5s ease-in-out infinite}
+@keyframes a06-pulse{50%{opacity:.38;transform:scale(.8)}}
+/* Section entrance uses a 175ms Web Animations transform/opacity, not full-page stagger. */
+section,section>*{animation:none!important}
+/* Keep tactile interactions and crisp sheet transitions. */
+.nav .pill,.dt,.chip,.fab,.asst,.card button{transition:transform .16s ease-out,color .18s ease-out,background-color .18s ease-out!important}
+.nav button:active .pill,.chip:active,.fab:active,.asst:active{transform:scale(.94)}
+/* Decorative blurs are avoided; static depth remains. */
+.glass i{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+/* Explicit power/accessibility preference takes precedence. */
+@media (prefers-reduced-motion:reduce){body.live[data-tab="home"] .live-ch i{animation:none!important}}
 </style>
 </head>
 <body data-tab="home">
@@ -424,15 +460,29 @@ function fanChart(f){const[c0,c1]=[f.c0,f.c1],N=Math.max(2,Math.round((c1-c0)/D1
 const arc=(a0,a1,r)=>{const P=a=>[r*Math.sin(a*Math.PI/180),-r*Math.cos(a*Math.PI/180)];const[x0,y0]=P(a0),[x1,y1]=P(a1);return`M${x0} ${y0}A${r} ${r} 0 ${a1-a0>180?1:0} 1 ${x1} ${y1}`};
 const ang=ts=>{const d=new Date(ts);return((d.getHours()%12)+d.getMinutes()/60)*30};
 let w='M0 11Q6 3 12 11';for(let i=24;i<=348;i+=12)w+='T'+i+' 11';$('#wp').setAttribute('d',w);
-const tw={};function setN(id,v,f){const el=$('#'+id);if(!el)return;const from=tw[id]??0;tw[id]=v;if(Math.abs(from-v)<.005){el.textContent=f(v);return}
- const t0=performance.now();(function s(t){const k=Math.min(1,(t-t0)/600),e=1-Math.pow(1-k,3);el.textContent=f(from+(v-from)*e);if(k<1)requestAnimationFrame(s)})(t0)}
+const tw={},numberFrames={};function setN(id,v,f){const el=$('#'+id);if(!el)return;
+ const previous=tw[id];tw[id]=v;
+ if(numberFrames[id]){cancelAnimationFrame(numberFrames[id]);numberFrames[id]=0}
+ // Changes in hidden tabs do not need animation. Neither do tiny amounts that round to the same text.
+ if(previous===undefined||Math.abs(previous-v)<.01||calm()||document.hidden||el.closest('section')?.hidden){el.textContent=f(v);return}
+ const start=performance.now(),duration=320;
+ const step=t=>{const k=Math.min(1,(t-start)/duration),e=1-(1-k)*(1-k)*(1-k);
+ el.textContent=f(previous+(v-previous)*e);if(k<1)numberFrames[id]=requestAnimationFrame(step);else numberFrames[id]=0};
+ numberFrames[id]=requestAnimationFrame(step)}
 function stateOf(){if(!cur)return['Off duty','Ready when you are','bedtime','zz'];
  if(((cur.split&&Date.now()>cur.split)?cur.t2:cur.t)==='20')return['OT 2.0 active','Every hour paid at 2×','local_fire_department','fire'];
  const n=Date.now(),s=hm(S.ss,cur.in),e=hm(S.se,cur.in);
  if(n<s)return cur.in<hm(S.cut,cur.in)?['OT 1.5 active','Early start bonus','bolt','bolt']:['Pre-shift','No OT yet','hourglass_top','flip'];
  if(n<=e)return new Date(n).getDay()===6&&n>=hm(S.sa,n)&&n<hm(S.sb,n)?['Saturday OT 1.5','Half-day hours','bolt','bolt']:['On shift','Ends in '+fmt(e-n),'work','work'];
  return['OT 1.5 active','After shift end','bolt','bolt']}
-function tick(){const n=new Date(),now=n.getTime(),sx=sums(),st=stateOf();
+let totalsCache=null,totalsAt=0;
+function tick(){if(document.hidden)return;
+ const n=new Date(),now=n.getTime(),home=document.body.dataset.tab==='home';
+ // The full dashboard is never repainted in the background simply to advance the clock.
+ if(!home)return;
+ const needTotals=!totalsCache||now-totalsAt>=(cur?10000:60000);
+ if(needTotals){totalsCache=sums();totalsAt=now}
+ const sx=totalsCache,st=stateOf();
  document.body.classList.toggle('live',!!cur);
  $('#ht').textContent=st[0];$('#hs').textContent=st[1];ico('hb_i',st[2],st[3]);$('#lv').textContent=cur?'Live · '+fmt(now-cur.in):'Off duty';
  $('#dt').textContent=p2(n.getHours())+':'+p2(n.getMinutes());$('#ds').textContent=p2(n.getSeconds());$('#dd2').textContent=n.toLocaleDateString('en',{weekday:'long',day:'numeric',month:'short'});
@@ -443,7 +493,8 @@ function tick(){const n=new Date(),now=n.getTime(),sx=sums(),st=stateOf();
  $('#lu').textContent=fh(sx.late)+' used';$('#ll').textContent=over?'Over by '+fh(sx.late-S.lateAllow):fh(S.lateAllow-sx.late)+' left';$('#ls').textContent=pc.toFixed(0)+'% of the 3h allowance';
  setN('b15',sx.o15*R15,m2);setN('b20',sx.o20*R20,m2);setN('bl',sx.ld,m2);setN('be',sx.epf,m2);
  $('#s15').textContent=sx.o15.toFixed(2)+'h × '+m2(R15);$('#s20').textContent=sx.o20.toFixed(2)+'h × '+m2(R20);$('#sl').textContent=sx.late+' min · '+sx.ex+' charged'}
-function chart(){const wk=week(),v=d=>metric==='h'?d.h:metric==='o'?d.o:d.p,mx=Math.max(1,...wk.map(v));if(sel<0)sel=Math.max(0,wk.map(d=>d.h>0).lastIndexOf(true));
+let chartKey='';function chart(){const wk=week(),v=d=>metric==='h'?d.h:metric==='o'?d.o:d.p,mx=Math.max(1,...wk.map(v));if(sel<0)sel=Math.max(0,wk.map(d=>d.h>0).lastIndexOf(true));
+ const key=JSON.stringify([metric,sel,wk.map(d=>[d.d.getTime(),d.h,d.o,d.p])]);if(key===chartKey)return;chartKey=key;
  $('#ch').innerHTML=wk.map((d,i)=>{const p=Math.max(5,v(d)/mx*100),lb=metric==='p'?'LKR '+Math.round(v(d)):v(d).toFixed(1)+'h';return`<div class="bc${i==sel?' on':''}" data-i="${i}"><div class="tip" style="bottom:calc(${p*.78}% + 36px)">${lb}</div><div class="bar" style="height:0" data-h="${p*.78}%"></div><span class="dl">${d.d.toLocaleDateString('en',{weekday:'narrow'})}</span></div>`}).join('');
  requestAnimationFrame(()=>requestAnimationFrame(()=>$$('#ch .bar').forEach(b=>b.style.height=b.dataset.h)))}
 function days(){const[c0,c1]=cyc(),td=dk(Date.now()),sd=new Set(L.map(e=>dk(e.in)));let h='';
@@ -451,9 +502,9 @@ function days(){const[c0,c1]=cyc(),td=dk(Date.now()),sd=new Set(L.map(e=>dk(e.in
  $('#dy').innerHTML=h;const r=!!TA[td];$('#tst').textContent=r?'Received':'Not received yet';$('#tcard').className='tcard '+(r?'sc':'tc');ico('tbi_i',r?'check_circle':'directions_bus',r?'bolt':'bus')}
 function list(){const q=$('#sq').value.toLowerCase(),rows=L.filter(inCy).sort((a,b)=>b.in-a.in).map(e=>({e,c:calc(e)})).filter(({c})=>filt==='all'||(filt==='ot'&&c.o15+c.o20>0)||(filt==='late'&&c.late>0));
  const it=rows.map(({e,c})=>{const d=new Date(e.in),tt=d.toLocaleDateString('en',{weekday:'short',day:'numeric',month:'short'}),tm=x=>new Date(x).toLocaleTimeString('en',{hour:'numeric',minute:'2-digit'}),tags=(e.t==='20'?'<span class="tg t">OT 2.0 day</span>':'<span class="tg">Normal</span>')+(c.o15>0?`<span class="tg g">OT 1.5 · ${c.o15.toFixed(1)}h</span>`:'')+(c.o20>0?`<span class="tg t">OT 2.0 · ${c.o20.toFixed(1)}h</span>`:'')+(c.late?`<span class="tg e">Late ${c.late}m</span>`:'');return{x:(tt+tags).toLowerCase(),h:`<div class="item s li" data-id="${e.id}"><div class="cb sm" data-t="${d.getDate()}"></div><div class="grow"><div class="t2">${tt}</div><p>${tm(e.in)} → ${e.out?tm(e.out):'live'} · ${c.h.toFixed(2)}h</p>${tags}</div></div>`}}).filter(o=>o.x.includes(q));
- $('#ls2').innerHTML=it.map(o=>o.h).join('');$('#cnt').textContent=it.length+' shifts in this cycle';mk()}
+ const logMarkup=it.map(o=>o.h).join('');if($('#ls2').innerHTML!==logMarkup){$('#ls2').innerHTML=logMarkup;mk()}$('#cnt').textContent=it.length+' shifts in this cycle'}
 function label(){const[a,b]=cyc();$('#cyl').textContent=fd(a)+' – '+fd(b-D1)+' cycle'}
-const build=()=>{label();mk();chart();days();list();tick();if(document.body.dataset.tab==='out')outlook()};
+const build=()=>{totalsCache=null;totalsAt=0;label();mk();chart();days();list();tick();if(document.body.dataset.tab==='out')outlook()};
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),2200)}
 const TABS=['home','stats','out','pay','log','set'];
 const NV=$('#nav'),IND=$('#ind'),BGW=$('#bgw');let CT='home',swTok=0;
@@ -485,20 +536,24 @@ const IA={home:[['.hroof',[{transform:'none'},{transform:'none',offset:.55},{tra
  log:[['.hm',ROT,IO(2600,{easing:'linear'}),'rot'],['.hh2',ROT,IO(31000,{easing:'linear'}),'rot']],
  set:[['.gr',ROT,IO(6000,{easing:'linear'}),'rot']]};
 const calm=()=>typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-function startIcons(b,t){stopIcons(b,true);b._an=[];if(calm())return;(IA[t]||[]).forEach(([sel,kf,opt,kind])=>b.querySelectorAll(sel).forEach(el=>{if(el.animate)b._an.push({el,a:el.animate(kf,opt),kind})}))}
+function startIcons(b,t){stopIcons(b,true);b._an=[];/* A06: avoid perpetual WAAPI icon loops. */}
 function stopIcons(b,hard){(b._an||[]).forEach(({el,a,kind})=>{if(hard){a.cancel();return}try{const cs=getComputedStyle(el);
   if(kind==='tf'){const c=cs.transform;a.cancel();if(c&&c!=='none')el.animate([{transform:c},{transform:'none'}],{duration:380,easing:'cubic-bezier(.3,1.5,.5,1)'})}
   else if(kind==='rot'){const m=new DOMMatrix(cs.transform);let g=Math.atan2(m.b,m.a)*180/Math.PI;if(g<0)g+=360;a.cancel();if(g>1)el.animate([{transform:`rotate(${g}deg)`},{transform:'rotate(360deg)'}],{duration:Math.max(260,(360-g)/360*700),easing:'cubic-bezier(.2,.8,.3,1.08)'})}
   else{const v=parseFloat(cs.strokeDashoffset)||0;a.cancel();if(v)el.animate([{strokeDashoffset:v},{strokeDashoffset:0}],{duration:350,easing:'ease-out'})}}catch(_){a.cancel()}});b._an=[]}
 const pop=b=>{const p=b.querySelector('.pill');if(p&&p.animate)p.animate([{transform:'scale(.4) rotate(-25deg)'},{transform:'none'}],{duration:620,easing:'cubic-bezier(.3,1.9,.5,1)'})};
-function bgShift(dir){if(BGW&&BGW.animate&&!calm())BGW.animate([{transform:`translateX(${-dir*11}vw) scale(1.16)`,opacity:.55},{transform:'none',opacity:1}],{duration:1200,easing:'cubic-bezier(.2,.9,.3,1.1)'})}
+function bgShift(dir){/* A06: disable full-screen animation; background is intentionally static. */}
 function show(t){const ni=TABS.indexOf(t);if(ni<0)return;const oi=TABS.indexOf(CT),dir=ni>=oi?1:-1,same=t===CT,tok=++swTok;
  NB().forEach((b,i)=>{const on=i===ni,was=b.classList.contains('on');b.classList.toggle('on',on);b.classList.remove('hv');if(on&&!was){startIcons(b,TABS[i]);pop(b)}if(!on&&was)stopIcons(b)});
- indTo(ni);CT=t;document.body.dataset.tab=t;
+ indTo(ni);CT=t;document.body.dataset.tab=t;manageClock();
  const nw=document.querySelector('section[data-s="'+t+'"]'),old=[...document.querySelectorAll('section')].find(x=>!x.hidden&&x!==nw);
- const enter=()=>{if(tok!==swTok)return;$$('section').forEach(x=>{x.hidden=x!==nw});nw.style.setProperty('--dx',same?0:dir);scrollTo({top:0});if(t==='stats')chart();if(t==='log')list();if(t==='pay')days();if(t==='out')outlook()};
+ const enter=()=>{if(tok!==swTok)return;$$('section').forEach(x=>{x.hidden=x!==nw});nw.style.setProperty('--dx',same?0:dir);scrollTo({top:0});
+ if(t==='home')tick();if(t==='stats')chart();if(t==='log')list();if(t==='pay')days();if(t==='out')outlook();
+ // Keep short, composited tab motion; skip for reduced motion or repeat taps.
+ if(!same&&!calm()&&nw.animate)nw.animate([{opacity:.74,transform:`translate3d(${dir*12}px,5px,0)`},{opacity:1,transform:'translate3d(0,0,0)'}],{duration:175,easing:'cubic-bezier(.2,.75,.25,1)'})};
  if(!same)bgShift(dir);
- if(old&&old.animate&&!same&&!calm()){const a=old.animate([{opacity:1,transform:'none'},{opacity:0,transform:`translateX(${-dir*44}px) scale(.97)`}],{duration:180,easing:'ease-in',fill:'forwards'});a.onfinish=()=>{a.cancel();enter()}}else enter()}
+ // A06: switch immediately instead of waiting for the outgoing 180ms animation.
+ enter()}
 function spark(b){for(let i=0;i<8;i++){const s=document.createElement('b'),a=i/8*6.283;s.className='spk2';s.style.setProperty('--x',Math.cos(a)*(46+i%2*14)+'px');s.style.setProperty('--y',Math.sin(a)*(28+i%2*8)+'px');b.appendChild(s);setTimeout(()=>s.remove(),750)}}
 function split(el){const t=el.dataset.w||(el.dataset.w=el.textContent);el.innerHTML=[...t].map((c,i)=>`<i style="--i:${i}">${c===' '?'&nbsp;':c}</i>`).join('')}
 $$('.dtl').forEach(split);
@@ -627,7 +682,9 @@ $('#ct').textContent=cur?'Clock out':'Clock in';$('#clk').classList.toggle('on',
 build();bkInfo();
 requestAnimationFrame(()=>{indSet(0);startIcons(NB()[0],'home')});setTimeout(()=>indSet(TABS.indexOf(CT)),500);
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>indSet(TABS.indexOf(CT)));
-notifSync(false);setInterval(tick,1000);
+notifSync(false);
+let clockTimer=0;function manageClock(){clearInterval(clockTimer);clockTimer=0;if(!document.hidden&&document.body.dataset.tab==='home'){tick();clockTimer=setInterval(tick,1000)}}
+document.addEventListener('visibilitychange',()=>{totalsCache=null;manageClock()});manageClock();
 </script>
 </body>
 </html>
