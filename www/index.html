@@ -5,7 +5,7 @@
 <script>try{if(localStorage.getItem('ui')==='classic'){location.replace('classic.html')}}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f3edfa">
-<title>SHIFT//TRACKER v3.2 A06 lively</title>
+<title>SHIFT//TRACKER v3.2 A06 single ripple</title>
 <link rel="stylesheet" href="fonts2.css">
 <style>
 @property --b1{syntax:'<color>';inherits:true;initial-value:#d9c8ff}@property --b2{syntax:'<color>';inherits:true;initial-value:#bcd6ff}@property --b3{syntax:'<color>';inherits:true;initial-value:#e4f5b8}
@@ -50,8 +50,17 @@ section{animation:in .45s}section[hidden]{display:none}@keyframes in{from{opacit
 .cta:active{border-radius:20px;transform:scale(.96);box-shadow:0 0 0 7px color-mix(in srgb,var(--p),transparent 70%)}.cta.on{background:var(--tc);color:var(--otc)}.cta .ms{font-size:30px}
 .cta:after{content:"";position:absolute;inset:0;border-radius:inherit;border:2px solid var(--p);opacity:0;pointer-events:none}.cta.on:after{animation:ring 2.2s ease-out infinite}@keyframes ring{0%{transform:scale(1);opacity:.7}100%{transform:scale(1.1,1.45);opacity:0}}
 .cta.pop{animation:cbn .8s cubic-bezier(.3,1.7,.5,1)}@keyframes cbn{0%{transform:scale(.88)}45%{transform:scale(1.07)}100%{transform:scale(1)}}
-.wv2{position:fixed;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;pointer-events:none;z-index:8;background:radial-gradient(circle,transparent 56%,color-mix(in srgb,var(--p),transparent 55%) 63%,transparent 71%);animation:wv2 1.2s cubic-bezier(.2,.6,.3,1) forwards;will-change:transform,opacity}.wv2.o{background:radial-gradient(circle,transparent 56%,color-mix(in srgb,var(--otc),transparent 65%) 63%,transparent 71%)}.wv2:after{content:"";position:absolute;inset:0;border-radius:50%;background:inherit;animation:wv2 1.2s .18s cubic-bezier(.2,.6,.3,1) forwards;opacity:0}
-@keyframes wv2{from{transform:scale(1);opacity:1}to{transform:scale(36);opacity:0}}@keyframes rx{40%{transform:translateY(-5px) scale(1.015)}}
+/* A single ripple with the original v4 1.2-second timing and easing.
+   No ::after echo and no second sibling ring. */
+.wv2{position:fixed;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;pointer-events:none;z-index:8;
+ background:radial-gradient(circle,transparent 56%,color-mix(in srgb,var(--p),transparent 55%) 63%,transparent 71%);
+ animation:wv2 1.2s cubic-bezier(.2,.6,.3,1) forwards;will-change:transform,opacity}
+.wv2.o{background:radial-gradient(circle,transparent 56%,color-mix(in srgb,var(--otc),transparent 65%) 63%,transparent 71%);
+ animation-name:wv2reverse}
+@keyframes wv2{from{transform:scale(1);opacity:1}to{transform:scale(var(--wave-reach,36));opacity:0}}
+@keyframes wv2reverse{from{transform:scale(var(--wave-reach,36));opacity:1}to{transform:scale(1);opacity:0}}
+@media (prefers-reduced-motion:reduce){.wv2,.wv2.o,.wv2:after,.wv2.o:after{animation:none!important;opacity:0!important}}
+@keyframes rx{40%{transform:translateY(-5px) scale(1.015)}}
 .seg{display:flex;margin-bottom:14px}.seg button{flex:1;height:48px;border:1px solid color-mix(in srgb,var(--fg),transparent 65%);display:flex;gap:8px;align-items:center;justify-content:center;font-weight:700;font-size:14px;margin-left:-1px}
 .seg button:first-child{border-radius:24px 0 0 24px;margin:0}.seg button:last-child{border-radius:0 24px 24px 0}.seg .ms{font-size:18px;display:none}.seg .on{background:var(--pc);color:var(--opc)}.seg .on .ms{display:inline-block}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}.g2 .card{margin:0;padding:16px}.wide{grid-column:span 2}
@@ -200,6 +209,36 @@ section,section>*{animation:none!important}
 .glass i{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 /* Explicit power/accessibility preference takes precedence. */
 @media (prefers-reduced-motion:reduce){body.live[data-tab="home"] .live-ch i{animation:none!important}}
+
+/* A06 card-motion edition: restore every original staggered falling/bouncing card.
+   No permanent large layers: hints and animations exist only during a tab entrance. */
+section.tab-cards-in > * {
+  animation:a06-card-fall .6s cubic-bezier(.3,1.4,.5,1) both !important;
+  will-change:transform,opacity;
+}
+section.tab-cards-in > :nth-child(2){animation-delay:.05s!important}
+section.tab-cards-in > :nth-child(3){animation-delay:.1s!important}
+section.tab-cards-in > :nth-child(4){animation-delay:.15s!important}
+section.tab-cards-in > :nth-child(5){animation-delay:.2s!important}
+section.tab-cards-in > :nth-child(6){animation-delay:.25s!important}
+section.tab-cards-in > :nth-child(7){animation-delay:.3s!important}
+section.tab-cards-in > :nth-child(8){animation-delay:.35s!important}
+section.tab-cards-in > :nth-child(n+9){animation-delay:.35s!important}
+@keyframes a06-card-fall {
+  0%{opacity:0;transform:translate3d(calc(var(--dx,0)*34px),26px,0) scale(.96)}
+  60%{transform:translate3d(0,-4px,0) scale(1.005)}
+  100%{opacity:1;transform:translate3d(0,0,0) scale(1)}
+}
+@media (prefers-reduced-motion:reduce) {
+  section.tab-cards-in > *{animation:none!important;will-change:auto!important}
+}
+
+/* Independent ripple controls, native sliders (low work on A06). */
+#ripple-settings .ripple-control{margin-top:18px}
+#ripple-settings .ripple-control label{margin:0;font-size:14px;font-weight:700;opacity:1}
+#ripple-settings output{font-variant-numeric:tabular-nums;font-weight:700;padding:4px 10px;border-radius:9px;background:var(--pc);color:var(--opc);min-width:62px;text-align:center}
+#ripple-settings input[type=range]{display:block;width:100%;margin:8px 0 2px;accent-color:var(--p);touch-action:pan-y}
+#ripple-settings .ripple-extremes{display:flex;justify-content:space-between;opacity:.65;font-size:11px;font-weight:600}
 </style>
 </head>
 <body data-tab="home">
@@ -271,6 +310,20 @@ section,section>*{animation:none!important}
       <label class="fl">Accent combo</label><div class="cbx"><select class="fi" id="cmb"></select><span class="dots" id="cdots"></span></div>
       <div class="nr" id="dpr" style="margin-top:8px"><span class="ms">layers</span><span class="grow">Depth &amp; shadows</span><div class="swt on" id="dpt"></div></div><input type="range" id="dps" min="0" max="1.5" step=".05">
       <div class="nr" id="lbr"><span class="ms">label</span><span class="grow">Show tab names</span><div class="swt on" id="lbt"></div></div></div>
+    <div class="card s" id="ripple-settings">
+      <div class="row" style="align-items:center;gap:10px"><span class="ms" style="font-size:24px">waves</span><div class="grow"><div class="t2">Ripple speed</div><div class="sup">Adjust how long each wave takes. Card reactions follow the wave.</div></div></div>
+      <div class="ripple-control">
+        <div class="row" style="align-items:center;justify-content:space-between"><label for="ripple-in" class="fl">Clock In</label><output id="ripple-in-value" for="ripple-in">1.2 s</output></div>
+        <input type="range" id="ripple-in" min="0.5" max="2.5" step="0.1" value="1.2" aria-label="Clock In ripple duration">
+        <div class="ripple-extremes"><span>Faster</span><span>Slower</span></div>
+      </div>
+      <div class="ripple-control">
+        <div class="row" style="align-items:center;justify-content:space-between"><label for="ripple-out" class="fl">Clock Out</label><output id="ripple-out-value" for="ripple-out">1.2 s</output></div>
+        <input type="range" id="ripple-out" min="0.5" max="2.5" step="0.1" value="1.2" aria-label="Clock Out ripple duration">
+        <div class="ripple-extremes"><span>Faster</span><span>Slower</span></div>
+      </div>
+      <div class="row" style="align-items:center;justify-content:space-between;margin-top:12px"><span class="sup">Default: 1.2 seconds for each</span><button class="tb" id="ripple-reset" type="button">Reset</button></div>
+    </div>
     <div class="item s" id="pr"><div class="cb sm" data-i="payments" data-c="coin"></div><div class="grow"><div class="t2">Pay rules</div></div><span class="ms">chevron_right</span></div>
     <div class="card s"><div class="t2">Notifications</div><div id="nl"></div></div>
     <div class="card s"><div class="t2">App look</div><div class="seg" id="look" style="margin:12px 0 0"><button class="on" data-l="new"><span class="ms">check</span>New design</button><button data-l="old"><span class="ms">check</span>Classic</button></div></div>
@@ -314,7 +367,10 @@ const SD={basic:30000,div:220,m15:1.5,m20:2,ss:'13:00',se:'21:15',cut:'12:00',po
 const S=Object.assign({},SD,DEMO?{}:lsg('st2',{}));
 let H,R15,R20;const D1=864e5;const rates=()=>{H=S.basic/S.div;R15=H*S.m15;R20=H*S.m20};rates();
 const keep=(k,v)=>{if(!(DEMO&&['log','ta','st2','pick','bkt'].includes(k)))lss(k,v)};
-let DS=Object.assign({dpOn:true,dp:.7,labels:true,combo:'none',n:[0,0,0,0]},lsg('v4ui',{}));const saveUI=()=>lss('v4ui',DS);
+let DS=Object.assign({dpOn:true,dp:.7,labels:true,combo:'none',n:[0,0,0,0],rippleIn:1.2,rippleOut:1.2},lsg('v4ui',{}));const saveUI=()=>lss('v4ui',DS);
+// Clamp older/corrupted stored preferences; preserve a 1.2s default on both actions.
+const rippleSeconds=v=>{const n=Number(v);return Number.isFinite(n)?Math.round(Math.max(.5,Math.min(2.5,n))*10)/10:1.2};
+DS.rippleIn=rippleSeconds(DS.rippleIn);DS.rippleOut=rippleSeconds(DS.rippleOut);
 const hm=(s,r)=>{const[a,b]=s.split(':').map(Number),d=new Date(r);d.setHours(a,b,0,0);return d.getTime()};
 const m2=n=>n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const NF=n=>Math.round(n).toLocaleString('en-US');
@@ -383,12 +439,17 @@ function forecast(){const[c0,c1]=cyc(),T=new Date();T.setHours(0,0,0,0);const t0
  return{pay,cu,floor,likely,stretch,fan,rem,remWD:rem.filter(d=>d>0&&d<6).length,remSat:rem.filter(d=>d===6).length,weeks:Math.max(1,rem.length/7),best,trend:(w1-w0)/(w0+w1+2)*100,pl,c0,c1,t0,q}}
 /* render outlook */
 const DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-function outlook(){const f=forecast(),cu=f.cu;window._f=f;
+let outlookMotionCache=null;
+function outlook(){
+ const signature=JSON.stringify([Math.floor(Date.now()/60000),L,S,CY]);
+ const cached=outlookMotionCache&&outlookMotionCache.signature===signature;
+ const f=cached?outlookMotionCache.f:forecast(),cu=f.cu;window._f=f;
  $('#fl').textContent='LKR '+NF(f.likely);$('#ff').textContent='LKR '+NF(f.floor);$('#fs').textContent='LKR '+NF(f.stretch);
  $('#rmk').style.left=(f.stretch>f.floor?Math.min(100,Math.max(0,(f.likely-f.floor)/(f.stretch-f.floor)*100)):50)+'%';
  const risk=f.pl>S.lateAllow-cu.late?'high':f.pl>(S.lateAllow-cu.late)*.6?'medium':'low';
  $('#pt').innerHTML=`<span class="chip on"><span class="ms" style="display:inline-block">trending_up</span>Best day · ${DN[f.best]}</span><span class="chip on"><span class="ms" style="display:inline-block">${f.trend>=0?'north_east':'south_east'}</span>OT trend · ${f.trend>=0?'+':''}${Math.round(f.trend)}%</span><span class="chip on"><span class="ms" style="display:inline-block">timer</span>Late risk · ${risk}</span>`;
- fanChart(f);planner();const A=analyze();window._A=A;if(A.shifts<6)$('#pt').innerHTML='<span class="chip on"><span class="ms" style="display:inline-block">edit_calendar</span>Log a few more shifts to unlock predictions</span>';predictions(A,f);strategy(A,f);patterns(A,f)}
+ fanChart(f);planner();const A=cached?outlookMotionCache.A:analyze();
+ if(!cached)outlookMotionCache={signature,f,A};window._A=A;if(A.shifts<6)$('#pt').innerHTML='<span class="chip on"><span class="ms" style="display:inline-block">edit_calendar</span>Log a few more shifts to unlock predictions</span>';predictions(A,f);strategy(A,f);patterns(A,f)}
 function analyze(){const T=new Date();T.setHours(0,0,0,0);const t0=T.getTime(),W=[...Array(7)].map(()=>({n:0,work:0,early:0,eh:0,after:0,ah:0,late:0,lm:0,ot2:0,pay:0}));let shifts=0;
  for(let i=1;i<=84;i++){const t=t0-i*D1,w=W[new Date(t).getDay()];w.n++;let any=0;L.forEach(e=>{if(e.in>=t&&e.in<t+D1&&e.out){any=1;shifts++;const c=calc(e),N=(e.t||'N')==='N';
   if(N&&e.in<hm(S.cut,e.in)){w.early++;w.eh+=(hm(S.ss,e.in)-e.in)/36e5}if(N&&e.out>hm(S.se,e.in)){w.after++;w.ah+=(e.out-hm(S.se,e.in))/36e5}
@@ -543,25 +604,97 @@ function stopIcons(b,hard){(b._an||[]).forEach(({el,a,kind})=>{if(hard){a.cancel
   else{const v=parseFloat(cs.strokeDashoffset)||0;a.cancel();if(v)el.animate([{strokeDashoffset:v},{strokeDashoffset:0}],{duration:350,easing:'ease-out'})}}catch(_){a.cancel()}});b._an=[]}
 const pop=b=>{const p=b.querySelector('.pill');if(p&&p.animate)p.animate([{transform:'scale(.4) rotate(-25deg)'},{transform:'none'}],{duration:620,easing:'cubic-bezier(.3,1.9,.5,1)'})};
 function bgShift(dir){/* A06: disable full-screen animation; background is intentionally static. */}
+let tabExitAnim=null,tabEntryTimer=0;
 function show(t){const ni=TABS.indexOf(t);if(ni<0)return;const oi=TABS.indexOf(CT),dir=ni>=oi?1:-1,same=t===CT,tok=++swTok;
+ // Cancel a superseded transition so rapid taps cannot leave a tab invisible.
+ if(tabExitAnim){tabExitAnim.onfinish=null;tabExitAnim.cancel();tabExitAnim=null}
+ clearTimeout(tabEntryTimer);
+ $$('section.tab-cards-in').forEach(x=>x.classList.remove('tab-cards-in'));
  NB().forEach((b,i)=>{const on=i===ni,was=b.classList.contains('on');b.classList.toggle('on',on);b.classList.remove('hv');if(on&&!was){startIcons(b,TABS[i]);pop(b)}if(!on&&was)stopIcons(b)});
  indTo(ni);CT=t;document.body.dataset.tab=t;manageClock();
  const nw=document.querySelector('section[data-s="'+t+'"]'),old=[...document.querySelectorAll('section')].find(x=>!x.hidden&&x!==nw);
- const enter=()=>{if(tok!==swTok)return;$$('section').forEach(x=>{x.hidden=x!==nw});nw.style.setProperty('--dx',same?0:dir);scrollTo({top:0});
- if(t==='home')tick();if(t==='stats')chart();if(t==='log')list();if(t==='pay')days();if(t==='out')outlook();
- // Keep short, composited tab motion; skip for reduced motion or repeat taps.
- if(!same&&!calm()&&nw.animate)nw.animate([{opacity:.74,transform:`translate3d(${dir*12}px,5px,0)`},{opacity:1,transform:'translate3d(0,0,0)'}],{duration:175,easing:'cubic-bezier(.2,.75,.25,1)'})};
- if(!same)bgShift(dir);
- // A06: switch immediately instead of waiting for the outgoing 180ms animation.
- enter()}
+ const enter=()=>{if(tok!==swTok)return;
+  // Compute tab data before showing content, avoiding DOM churn during its bounce.
+  if(t==='stats')chart();if(t==='log')list();if(t==='pay')days();if(t==='out')outlook();
+  nw.style.setProperty('--dx',same?0:dir);
+  $$('section').forEach(x=>{x.hidden=x!==nw});
+  scrollTo({top:0});if(t==='home')tick();
+  if(!same&&!calm()){
+   // All top-level content gets its old spring/fall entrance, not a page-wide fade.
+   nw.classList.add('tab-cards-in');
+   // Release will-change and CSS animation after the last stagger completes.
+   tabEntryTimer=setTimeout(()=>{nw.classList.remove('tab-cards-in');tabEntryTimer=0},1020);
+  }
+ };
+ if(old&&old.animate&&!same&&!calm()){
+  // Fast, compositor-only echo of the original outgoing page fall.
+  const a=old.animate([{opacity:1,transform:'translate3d(0,0,0) scale(1)'},{opacity:0,transform:`translate3d(${-dir*38}px,11px,0) scale(.975)`}],{duration:115,easing:'ease-in',fill:'forwards'});
+  tabExitAnim=a;
+  a.onfinish=()=>{a.cancel();if(tabExitAnim===a)tabExitAnim=null;enter()};
+  a.oncancel=()=>{if(tabExitAnim===a)tabExitAnim=null};
+ }else enter()
+}
 function spark(b){for(let i=0;i<8;i++){const s=document.createElement('b'),a=i/8*6.283;s.className='spk2';s.style.setProperty('--x',Math.cos(a)*(46+i%2*14)+'px');s.style.setProperty('--y',Math.sin(a)*(28+i%2*8)+'px');b.appendChild(s);setTimeout(()=>s.remove(),750)}}
 function split(el){const t=el.dataset.w||(el.dataset.w=el.textContent);el.innerHTML=[...t].map((c,i)=>`<i style="--i:${i}">${c===' '?'&nbsp;':c}</i>`).join('')}
 $$('.dtl').forEach(split);
 $('#seg').onclick=e=>{const b=e.target.closest('.dt');if(!b)return;type=b.dataset.t;keep('pick',type);if(cur){const c0=(cur.split?cur.t2:cur.t)||'N';if(c0!==type){if(cur.split)cur.t2=type;else{cur.split=Date.now();cur.t2=type}keep('log',L)}}document.body.classList.toggle('ot2',type==='20');$$('#seg .dt').forEach(x=>{x.classList.toggle('on',x===b);if(x!==b)x.classList.remove('hit')});b.classList.remove('hit');void b.offsetWidth;b.classList.add('hit');spark(b);tick()};
 document.addEventListener('click',e=>{const c=e.target.closest('.cb');if(c){c.classList.remove('hit');void c.offsetWidth;c.classList.add('hit')}});
-/* clock in/out with app-wide wave */
-function wave(x,y,out){const e=document.createElement('div');e.className='wv2'+(out?' o':'');e.style.left=x+'px';e.style.top=y+'px';document.body.appendChild(e);setTimeout(()=>e.remove(),1500);
- $$('.card,.item,.seg,.tcard,.asst').forEach(c=>{const r=c.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight)return;const d=Math.hypot(r.left+r.width/2-x,r.top+r.height/2-y);c.style.animation='none';void c.offsetWidth;c.style.animation=`rx .6s ${(d/1500).toFixed(2)}s cubic-bezier(.3,1.5,.5,1)`})}
+/* Single original-speed ripple and calm physically synchronized card responses.
+   The travel easing is the ORIGINAL cubic-bezier(.2,.6,.3,1), not linear.
+   Invert its y progress to obtain the matching time for each contact radius. */
+const rippleReactions=new Map();
+function rippleArrival(progress){
+ const p=Math.max(0,Math.min(1,progress));
+ let lo=0,hi=1;
+ for(let i=0;i<18;i++){
+  const u=(lo+hi)/2,v=1-u;
+  const y=3*v*v*u*.6+3*v*u*u+u*u*u;
+  if(y<p)lo=u;else hi=u;
+ }
+ const u=(lo+hi)/2,v=1-u;
+ return 3*v*v*u*.2+3*v*u*u*.3+u*u*u;
+}
+function wave(x,y,out){
+ if(calm())return;
+ const duration=1000*(out?DS.rippleOut:DS.rippleIn),startRadius=12.6;
+ const corners=[[0,0],[innerWidth,0],[0,innerHeight],[innerWidth,innerHeight]];
+ const far=Math.max(...corners.map(([cx,cy])=>Math.hypot(cx-x,cy-y)))+24;
+ const ring=document.createElement('div');ring.className='wv2'+(out?' o':'');
+ ring.style.left=x+'px';ring.style.top=y+'px';
+ ring.style.setProperty('--wave-reach',String(far/startRadius));
+ ring.style.animationDuration=duration+'ms';
+ document.body.appendChild(ring);
+ ring.addEventListener('animationend',e=>{if(e.target===ring)ring.remove()},{once:true});
+ setTimeout(()=>ring.remove(),duration+150);
+ const selector='.top,.asst,section[data-s="home"] .card,section[data-s="home"] .dt,section[data-s="home"] .live-ch,.nav button';
+ document.querySelectorAll(selector).forEach(el=>{
+  const r=el.getBoundingClientRect();
+  if(!r.width||!r.height||r.bottom<=0||r.top>=innerHeight||r.right<=0||r.left>=innerWidth)return;
+  const cx=r.left+r.width/2,cy=r.top+r.height/2;
+  const dx=cx-x,dy=cy-y,dist=Math.hypot(dx,dy);
+  const nearX=Math.max(r.left-x,0,x-r.right),nearY=Math.max(r.top-y,0,y-r.bottom);
+  const near=Math.hypot(nearX,nearY);
+  const edgeFar=Math.max(Math.hypot(r.left-x,r.top-y),Math.hypot(r.left-x,r.bottom-y),Math.hypot(r.right-x,r.top-y),Math.hypot(r.right-x,r.bottom-y));
+  const contact=out?edgeFar:near;
+  const fraction=out?(far-contact)/(far-startRadius):(contact-startRadius)/(far-startRadius);
+  const delay=duration*rippleArrival(fraction);
+  const previous=rippleReactions.get(el);if(previous){previous.cancel();rippleReactions.delete(el)}
+  if(typeof el.animate!=='function')return;
+  const ux=dx/Math.max(1,dist),uy=dy/Math.max(1,dist);
+  const travel=el.matches('.nav button')?2.5:el.matches('.live-ch')?3.2:5;
+  const direction=out?-1:1;
+  const tx=(direction*ux*travel).toFixed(2),ty=(direction*uy*travel).toFixed(2);
+  const kfs=[
+   {transform:'translate3d(0,0,0) scale(1)',offset:0},
+   {transform:`translate3d(${tx}px,${ty}px,0) scale(${out?.995:1.005})`,offset:.42},
+   {transform:'translate3d(0,0,0) scale(1)',offset:1}
+  ];
+  const anim=el.animate(kfs,{duration:650,delay:Math.round(delay),easing:'cubic-bezier(.25,.1,.25,1)',fill:'none'});
+  rippleReactions.set(el,anim);
+  const clear=()=>{if(rippleReactions.get(el)===anim)rippleReactions.delete(el)};
+  anim.onfinish=clear;anim.oncancel=clear;
+ });
+}
 $('#clk').onclick=e=>{const b=$('#clk'),r=b.getBoundingClientRect(),d=$('#dial'),x=r.left+r.width/2,y=r.top+r.height/2;
  b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop');
  if(cur){cur.out=Date.now();cur=null;d.className.baseVal='dial out';setTimeout(()=>{d.className.baseVal='dial';$('#ae').setAttribute('d','')},650);wave(x,y,true)}
@@ -671,6 +804,19 @@ $('#nl').onclick=async e=>{const r=e.target.closest('.nr');if(!r)return;const k=
 function applyUI(){const dp=DS.dpOn?DS.dp:0;document.documentElement.style.setProperty('--dp',dp);document.body.classList.toggle('nolabels',!DS.labels);
  $('#dpt').classList.toggle('on',!!DS.dpOn);$('#dps').value=DS.dp;$('#dps').disabled=!DS.dpOn;$('#lbt').classList.toggle('on',!!DS.labels);
  const c=COMBOS.find(x=>x[0]===DS.combo)||COMBOS[0];$('#cmb').value=c[0];$('#cdots').innerHTML=c.length>2?[2,3,4].map(i=>`<i style="background:hsl(${c[i]},70%,60%)"></i>`).join(''):''}
+/* Per-action ripple duration controls; saved as part of existing UI settings. */
+function showRippleSettings(){
+ [['ripple-in','ripple-in-value','rippleIn'],['ripple-out','ripple-out-value','rippleOut']].forEach(([id,output,key])=>{
+  $('#'+id).value=DS[key].toFixed(1);$('#'+output).textContent=DS[key].toFixed(1)+' s';
+ });
+}
+[['ripple-in','ripple-in-value','rippleIn'],['ripple-out','ripple-out-value','rippleOut']].forEach(([id,output,key])=>{
+ $('#'+id).addEventListener('input',e=>{
+  DS[key]=rippleSeconds(e.target.value);$('#'+output).textContent=DS[key].toFixed(1)+' s';saveUI();
+ });
+});
+$('#ripple-reset').onclick=()=>{DS.rippleIn=DS.rippleOut=1.2;showRippleSettings();saveUI();};
+showRippleSettings();
 $('#cmb').innerHTML=COMBOS.map(c=>`<option value="${c[0]}">${c[1]}</option>`).join('');
 $('#cmb').onchange=e=>{DS.combo=e.target.value;saveUI();applyTheme();applyUI()};
 $('#dpr').onclick=()=>{DS.dpOn=!DS.dpOn;saveUI();applyUI()};$('#dps').oninput=e=>{DS.dp=parseFloat(e.target.value);saveUI();applyUI()};
