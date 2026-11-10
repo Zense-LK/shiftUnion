@@ -6,6 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f3edfa">
 <title>SHIFT//TRACKER v3.2 A06 single ripple</title>
+<link rel="preload" href="fonts2/figtree-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts2/outfit-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="fonts2.css">
 <style>
 @property --b1{syntax:'<color>';inherits:true;initial-value:#d9c8ff}@property --b2{syntax:'<color>';inherits:true;initial-value:#bcd6ff}@property --b3{syntax:'<color>';inherits:true;initial-value:#e4f5b8}
@@ -239,6 +241,43 @@ section.tab-cards-in > :nth-child(n+9){animation-delay:.35s!important}
 #ripple-settings output{font-variant-numeric:tabular-nums;font-weight:700;padding:4px 10px;border-radius:9px;background:var(--pc);color:var(--opc);min-width:62px;text-align:center}
 #ripple-settings input[type=range]{display:block;width:100%;margin:8px 0 2px;accent-color:var(--p);touch-action:pan-y}
 #ripple-settings .ripple-extremes{display:flex;justify-content:space-between;opacity:.65;font-size:11px;font-weight:600}
+
+/* Original Shift Union design: motion-only exploration.
+   Dimensions, colors, fonts, card hierarchy and all tab markup remain unchanged. */
+@keyframes motionSoftPress{0%{transform:scale(1)}45%{transform:scale(.988) translateY(1px)}76%{transform:scale(1.004) translateY(-1px)}100%{transform:scale(1)}}
+@keyframes motionIconGlint{0%{opacity:0;transform:translate3d(-9px,5px,0) scale(.3)}40%{opacity:.8;transform:translate3d(3px,-7px,0) scale(1)}100%{opacity:0;transform:translate3d(12px,-12px,0) scale(.3)}}
+/* Tiny feedback only around selected pill; no full-screen graphics, no nav-container transforms. */
+.nav button{isolation:isolate}
+.nav button .pill{position:relative}
+.nav button .pill:after{content:'';pointer-events:none;position:absolute;right:3px;top:1px;width:5px;height:5px;border-radius:50%;background:var(--pc);opacity:0}
+.nav button.motion-chosen .pill:after{animation:motionIconGlint .48s ease-out both}
+/* Preview-only soft card tap: this is transient and never changes layout. */
+.card.motion-tapped,.item.motion-tapped,.tcard.motion-tapped{animation:motionSoftPress .35s cubic-bezier(.21,.77,.23,1.1) both!important}
+@media(prefers-reduced-motion:reduce){.card.motion-tapped,.item.motion-tapped,.tcard.motion-tapped,.nav button.motion-chosen .pill:after{animation:none!important}}
+
+/* The Clock button is intentionally independent of the ripple physics.
+   One spring on the entire button; its text and icon never disappear. */
+#clk.simple-clock-bounce { animation: simple-clock-bounce .62s cubic-bezier(.24,.72,.24,1) both !important; }
+@keyframes simple-clock-bounce {
+  0% {transform:translate3d(0,0,0) scale(1)}
+  23% {transform:translate3d(0,1px,0) scale(.95,.92)}
+  53% {transform:translate3d(0,-2px,0) scale(1.045,1.055)}
+  75% {transform:translate3d(0,0,0) scale(.993,.985)}
+  100% {transform:translate3d(0,0,0) scale(1)}
+}
+@media(prefers-reduced-motion:reduce){#clk.simple-clock-bounce{animation:none!important}}
+
+
+@keyframes mpSpark{0%{transform:translate3d(0,0,0) scale(.4);opacity:0}27%{opacity:.8}100%{transform:translate3d(var(--sx),var(--sy),0) scale(.8);opacity:0}}
+.mp-spark{position:fixed;z-index:30;pointer-events:none;width:5px;height:5px;border-radius:50%;background:var(--sc);animation:mpSpark var(--spark-time,.45s) ease-out forwards}
+body[data-motion-mode=playful] .nav button.motion-chosen .pill:after{width:7px;height:7px;background:var(--sc);animation-duration:.7s}
+@media(prefers-reduced-motion:reduce){.mp-spark{display:none}}
+
+/* Fixed bottom navigation: no translated fixed container; Android scroll-safe anchor. */
+.nav{left:10px!important;right:10px!important;width:auto!important;max-width:420px!important;margin-left:auto!important;margin-right:auto!important;transform:none!important;contain:layout style;}
+/* Prevent page bounce from moving the fixed navigation visual layer. */
+html{overscroll-behavior-y:none;overflow-x:clip}body{overflow-x:clip}.app{overflow-x:clip}
+/* Keep the active falling-card animation and its 50ms staggers unchanged. */
 </style>
 </head>
 <body data-tab="home">
@@ -526,7 +565,7 @@ const tw={},numberFrames={};function setN(id,v,f){const el=$('#'+id);if(!el)retu
  if(numberFrames[id]){cancelAnimationFrame(numberFrames[id]);numberFrames[id]=0}
  // Changes in hidden tabs do not need animation. Neither do tiny amounts that round to the same text.
  if(previous===undefined||Math.abs(previous-v)<.01||calm()||document.hidden||el.closest('section')?.hidden){el.textContent=f(v);return}
- const start=performance.now(),duration=320;
+ const start=performance.now(),duration=typeof mpSettings!=='undefined'?mpSettings[mpMode].number:320;
  const step=t=>{const k=Math.min(1,(t-start)/duration),e=1-(1-k)*(1-k)*(1-k);
  el.textContent=f(previous+(v-previous)*e);if(k<1)numberFrames[id]=requestAnimationFrame(step);else numberFrames[id]=0};
  numberFrames[id]=requestAnimationFrame(step)}
@@ -550,10 +589,13 @@ function tick(){if(document.hidden)return;
  $('#hh').setAttribute('transform',`rotate(${ang(now)})`);$('#mh').setAttribute('transform',`rotate(${n.getMinutes()*6+n.getSeconds()/10})`);$('#sh').style.transform=`rotate(${Math.floor(now/1000)*6}deg)`;
  if(cur){let a1=ang(now);const a0=ang(cur.in);if(a1<=a0)a1+=360;$('#ae').setAttribute('d',arc(a0,Math.min(a1,a0+359),36))}else if(!$('#dial').classList.contains('out'))$('#ae').setAttribute('d','');
  setN('net',sx.net,v=>'LKR '+m2(v));setN('tod',sx.tp,v=>'LKR '+m2(v));$('#nt').textContent='OT '+(sx.o15+sx.o20).toFixed(1)+'h';$('#tt').textContent='+'+sx.th.toFixed(2)+'h';
+}
+function renderStatsTotals(sx){
  const pc=Math.min(100,sx.late/S.lateAllow*100),over=sx.late>S.lateAllow;$('#wr').setAttribute('width',Math.max(0,pc*3));$('#wave').classList.toggle('over',over);ico('lic_i',over?'alarm':'hourglass_top',over?'shake':'flip');
  $('#lu').textContent=fh(sx.late)+' used';$('#ll').textContent=over?'Over by '+fh(sx.late-S.lateAllow):fh(S.lateAllow-sx.late)+' left';$('#ls').textContent=pc.toFixed(0)+'% of the 3h allowance';
  setN('b15',sx.o15*R15,m2);setN('b20',sx.o20*R20,m2);setN('bl',sx.ld,m2);setN('be',sx.epf,m2);
  $('#s15').textContent=sx.o15.toFixed(2)+'h × '+m2(R15);$('#s20').textContent=sx.o20.toFixed(2)+'h × '+m2(R20);$('#sl').textContent=sx.late+' min · '+sx.ex+' charged'}
+
 let chartKey='';function chart(){const wk=week(),v=d=>metric==='h'?d.h:metric==='o'?d.o:d.p,mx=Math.max(1,...wk.map(v));if(sel<0)sel=Math.max(0,wk.map(d=>d.h>0).lastIndexOf(true));
  const key=JSON.stringify([metric,sel,wk.map(d=>[d.d.getTime(),d.h,d.o,d.p])]);if(key===chartKey)return;chartKey=key;
  $('#ch').innerHTML=wk.map((d,i)=>{const p=Math.max(5,v(d)/mx*100),lb=metric==='p'?'LKR '+Math.round(v(d)):v(d).toFixed(1)+'h';return`<div class="bc${i==sel?' on':''}" data-i="${i}"><div class="tip" style="bottom:calc(${p*.78}% + 36px)">${lb}</div><div class="bar" style="height:0" data-h="${p*.78}%"></div><span class="dl">${d.d.toLocaleDateString('en',{weekday:'narrow'})}</span></div>`}).join('');
@@ -565,25 +607,48 @@ function list(){const q=$('#sq').value.toLowerCase(),rows=L.filter(inCy).sort((a
  const it=rows.map(({e,c})=>{const d=new Date(e.in),tt=d.toLocaleDateString('en',{weekday:'short',day:'numeric',month:'short'}),tm=x=>new Date(x).toLocaleTimeString('en',{hour:'numeric',minute:'2-digit'}),tags=(e.t==='20'?'<span class="tg t">OT 2.0 day</span>':'<span class="tg">Normal</span>')+(c.o15>0?`<span class="tg g">OT 1.5 · ${c.o15.toFixed(1)}h</span>`:'')+(c.o20>0?`<span class="tg t">OT 2.0 · ${c.o20.toFixed(1)}h</span>`:'')+(c.late?`<span class="tg e">Late ${c.late}m</span>`:'');return{x:(tt+tags).toLowerCase(),h:`<div class="item s li" data-id="${e.id}"><div class="cb sm" data-t="${d.getDate()}"></div><div class="grow"><div class="t2">${tt}</div><p>${tm(e.in)} → ${e.out?tm(e.out):'live'} · ${c.h.toFixed(2)}h</p>${tags}</div></div>`}}).filter(o=>o.x.includes(q));
  const logMarkup=it.map(o=>o.h).join('');if($('#ls2').innerHTML!==logMarkup){$('#ls2').innerHTML=logMarkup;mk()}$('#cnt').textContent=it.length+' shifts in this cycle'}
 function label(){const[a,b]=cyc();$('#cyl').textContent=fd(a)+' – '+fd(b-D1)+' cycle'}
-const build=()=>{totalsCache=null;totalsAt=0;label();mk();chart();days();list();tick();if(document.body.dataset.tab==='out')outlook()};
+// Lazy invalidation: only the currently visible screen is rendered after data changes.
+// All other sections retain their DOM and are refreshed when the user selects them.
+const build=()=>{totalsCache=null;totalsAt=0;chartKey='';outlookMotionCache=null;label();mk();
+ const active=document.body.dataset.tab;
+ if(active==='stats'){chart();renderStatsTotals(sums())}
+ else if(active==='pay')days();else if(active==='log')list();else if(active==='out')outlook();
+ if(active==='home')tick();};
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),2200)}
 const TABS=['home','stats','out','pay','log','set'];
 const NV=$('#nav'),IND=$('#ind'),BGW=$('#bgw');let CT='home',swTok=0;
 const NB=()=>[...NV.querySelectorAll('button')];
 const slot=i=>{const b=NB()[i],p=b.querySelector('.pill');return{x:b.offsetLeft+p.offsetLeft,y:b.offsetTop+p.offsetTop,w:p.offsetWidth||48,h:p.offsetHeight||32}};
 const IS={l:0,r:0,vl:0,vr:0,tl:0,tr:0,y:0,w:48,h:32,raf:0,t:0,drag:false,ps:0};
-function indRender(){const w=Math.max(8,IS.r-IS.l),sx=w/IS.w,sy=1-Math.min(.16,Math.abs(sx-1)*.35)-IS.ps*.08;IND.style.transform=`translate3d(${IS.l.toFixed(1)}px,${IS.y}px,0) scale(${(sx*(1+IS.ps*.04)).toFixed(3)},${sy.toFixed(3)})`}
+function indRender(){
+ const width=Math.max(IS.w*.88,Math.min(IS.w*1.13,IS.r-IS.l));
+ const cx=(IS.l+IS.r)*.5;
+ IND.style.transform=`translate3d(${(cx-width/2).toFixed(2)}px,${IS.y}px,0) scale(${(width/IS.w).toFixed(3)},${(1-Math.min(.06,Math.abs(width/IS.w-1)*.32)).toFixed(3)})`;
+}
 function indSize(i){const s=slot(i);IS.w=s.w;IS.h=s.h;IS.y=s.y;IND.style.width=s.w+'px';IND.style.height=s.h+'px';return s}
-function indSet(i){const s=indSize(i);IS.l=IS.tl=s.x;IS.r=IS.tr=s.x+s.w;IS.vl=IS.vr=0;indRender()}
+function indSet(i){if(IS.raf){cancelAnimationFrame(IS.raf);IS.raf=0}const s=indSize(i);IS.l=IS.tl=s.x;IS.r=IS.tr=s.x+s.w;IS.vl=IS.vr=0;indRender()}
 function indTo(i){const s=indSize(i);IS.tl=s.x;IS.tr=s.x+s.w;spring()}
-function spring(){if(IS.raf)return;IS.t=performance.now();const step=t=>{const f=Math.min(2.2,(t-IS.t)/16.67||1);IS.t=t;const fwd=(IS.tl+IS.tr)/2>=(IS.l+IS.r)/2,kl=fwd?.17:.34,kr=fwd?.34:.17,d=Math.pow(.77,f);
-  IS.vl=(IS.vl+(IS.tl-IS.l)*kl*f)*d;IS.vr=(IS.vr+(IS.tr-IS.r)*kr*f)*d;IS.l+=IS.vl*f;IS.r+=IS.vr*f;const mw=IS.w*2.3;if(IS.r-IS.l>mw){if(fwd)IS.l=IS.r-mw;else IS.r=IS.l+mw}IS.ps+=((IS.drag?1:0)-IS.ps)*Math.min(1,.25*f);indRender();
-  const still=Math.abs(IS.vl)+Math.abs(IS.vr)<.04&&Math.abs(IS.tl-IS.l)+Math.abs(IS.tr-IS.r)<.3&&Math.abs(IS.ps-(IS.drag?1:0))<.01;
-  if(still&&!IS.drag){IS.l=IS.tl;IS.r=IS.tr;IS.ps=0;indRender();IS.raf=0}else IS.raf=requestAnimationFrame(step)};IS.raf=requestAnimationFrame(step)}
+function spring(){
+ if(IS.raf)return;IS.t=performance.now();
+ const step=t=>{
+  const dt=Math.min(2,(t-IS.t)/16.667||1);IS.t=t;
+  // Critically damped center travel, with minimal stretch. No persistent jello.
+  const goal=(IS.tl+IS.tr)/2,center=(IS.l+IS.r)/2;
+  let v=(IS.vl+IS.vr)*.5;
+  v=(v+(goal-center)*.32*dt)*Math.pow(.55,dt);
+  const next=center+v*dt;
+  const width=IS.w*(IS.drag?1.07:Math.min(1.12,1+Math.min(.12,Math.abs(goal-next)/700)));
+  IS.l=next-width*.5;IS.r=next+width*.5;IS.vl=IS.vr=v;
+  indRender();
+  if(!IS.drag&&Math.abs(goal-next)<.36&&Math.abs(v)<.24){
+   IS.l=IS.tl;IS.r=IS.tr;IS.vl=IS.vr=0;indRender();IS.raf=0;
+  }else IS.raf=requestAnimationFrame(step);
+ };IS.raf=requestAnimationFrame(step);
+}
 const near=cx=>{let k=0,m=1e9;NB().forEach((b,i)=>{const s=slot(i),d=Math.abs(s.x+s.w/2-cx);if(d<m){m=d;k=i}});return k};
 let dg=null;
-NV.addEventListener('pointerdown',e=>{dg={x0:e.clientX,moved:false,nl:NV.getBoundingClientRect().left,cx:0};IS.drag=true;try{NV.setPointerCapture(e.pointerId)}catch(_){}spring()});
-NV.addEventListener('pointermove',e=>{if(!dg)return;if(!dg.moved&&Math.abs(e.clientX-dg.x0)<6)return;dg.moved=true;const a=slot(0),z=slot(NB().length-1),lo=a.x+a.w/2,hi=z.x+z.w/2;let cx=e.clientX-dg.nl;if(cx<lo)cx=lo-(lo-cx)*.32;if(cx>hi)cx=hi+(cx-hi)*.32;IS.tl=cx-IS.w/2;IS.tr=cx+IS.w/2;dg.cx=cx;const k=near(cx);NB().forEach((b,i)=>b.classList.toggle('hv',i===k))});
+NV.addEventListener('pointerdown',e=>{dg={x0:e.clientX,moved:false,nl:NV.getBoundingClientRect().left,cx:0,id:e.pointerId};});
+NV.addEventListener('pointermove',e=>{if(!dg)return;if(!dg.moved&&Math.abs(e.clientX-dg.x0)<8)return;if(!dg.moved){IS.drag=true;try{NV.setPointerCapture(dg.id)}catch(_){}spring()}dg.moved=true;const a=slot(0),z=slot(NB().length-1),lo=a.x+a.w/2,hi=z.x+z.w/2;let cx=e.clientX-dg.nl;if(cx<lo)cx=lo-(lo-cx)*.32;if(cx>hi)cx=hi+(cx-hi)*.32;IS.tl=cx-IS.w/2;IS.tr=cx+IS.w/2;dg.cx=cx;const k=near(cx);NB().forEach((b,i)=>b.classList.toggle('hv',i===k))});
 const endDg=e=>{if(!dg)return;const d=dg;dg=null;IS.drag=false;NB().forEach(b=>b.classList.remove('hv'));show(TABS[near(d.moved?d.cx:e.clientX-d.nl)])};
 NV.addEventListener('pointerup',endDg);NV.addEventListener('pointercancel',()=>{dg=null;IS.drag=false;indTo(TABS.indexOf(CT))});
 NV.addEventListener('click',e=>{if(e.detail===0){const b=e.target.closest('button');if(b)show(b.dataset.t)}});
@@ -597,42 +662,51 @@ const IA={home:[['.hroof',[{transform:'none'},{transform:'none',offset:.55},{tra
  log:[['.hm',ROT,IO(2600,{easing:'linear'}),'rot'],['.hh2',ROT,IO(31000,{easing:'linear'}),'rot']],
  set:[['.gr',ROT,IO(6000,{easing:'linear'}),'rot']]};
 const calm=()=>typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-function startIcons(b,t){stopIcons(b,true);b._an=[];/* A06: avoid perpetual WAAPI icon loops. */}
+let mpMode='playful';
+const mpSettings={subtle:{icon:.67,pop:340,amount:2,number:340,spark:0},balanced:{icon:1,pop:510,amount:4,number:600,spark:3},playful:{icon:1.25,pop:700,amount:6,number:900,spark:7}};
+function startIcons(b,t){
+ stopIcons(b,true);b._an=[];
+ if(calm()||!b.animate)return;
+ // Use each original SVG icon's own parts and keyframes, once, then stop.
+ // No endless icon animations: fast on the A06 and expressive on selection.
+ const specs=IA[t]||[];
+ for(const [selector,frames,options] of specs){
+  const target=b.querySelector(selector);if(!target)continue;
+  const opts={...options,iterations:1,fill:'none',delay:Math.min(options.delay||0,160),duration:Math.min(options.duration||650,780)*mpSettings[mpMode].icon};
+  const a=target.animate(frames,opts);
+  b._an.push({el:target,a,kind:'preview'});
+ }
+ b.classList.remove('motion-chosen');void b.offsetWidth;b.classList.add('motion-chosen');
+ clearTimeout(b._chosenTimer);b._chosenTimer=setTimeout(()=>b.classList.remove('motion-chosen'),780*mpSettings[mpMode].icon);
+}
 function stopIcons(b,hard){(b._an||[]).forEach(({el,a,kind})=>{if(hard){a.cancel();return}try{const cs=getComputedStyle(el);
   if(kind==='tf'){const c=cs.transform;a.cancel();if(c&&c!=='none')el.animate([{transform:c},{transform:'none'}],{duration:380,easing:'cubic-bezier(.3,1.5,.5,1)'})}
   else if(kind==='rot'){const m=new DOMMatrix(cs.transform);let g=Math.atan2(m.b,m.a)*180/Math.PI;if(g<0)g+=360;a.cancel();if(g>1)el.animate([{transform:`rotate(${g}deg)`},{transform:'rotate(360deg)'}],{duration:Math.max(260,(360-g)/360*700),easing:'cubic-bezier(.2,.8,.3,1.08)'})}
   else{const v=parseFloat(cs.strokeDashoffset)||0;a.cancel();if(v)el.animate([{strokeDashoffset:v},{strokeDashoffset:0}],{duration:350,easing:'ease-out'})}}catch(_){a.cancel()}});b._an=[]}
-const pop=b=>{const p=b.querySelector('.pill');if(p&&p.animate)p.animate([{transform:'scale(.4) rotate(-25deg)'},{transform:'none'}],{duration:620,easing:'cubic-bezier(.3,1.9,.5,1)'})};
+const pop=b=>{const p=b.querySelector('.pill');if(!p||!p.animate||calm())return;const z=mpSettings[mpMode],k=mpMode==='subtle'?.91:mpMode==='balanced'?.78:.62;const over=mpMode==='subtle'?1.018:mpMode==='balanced'?1.075:1.13;p.animate([{transform:`scale(${k}) rotate(${mpMode==='playful'?-15:-5}deg)`},{transform:`scale(${over}) rotate(2deg)`,offset:.61},{transform:'none'}],{duration:z.pop,easing:'cubic-bezier(.2,.86,.3,1)',fill:'none'})};
 function bgShift(dir){/* A06: disable full-screen animation; background is intentionally static. */}
-let tabExitAnim=null,tabEntryTimer=0;
-function show(t){const ni=TABS.indexOf(t);if(ni<0)return;const oi=TABS.indexOf(CT),dir=ni>=oi?1:-1,same=t===CT,tok=++swTok;
- // Cancel a superseded transition so rapid taps cannot leave a tab invisible.
- if(tabExitAnim){tabExitAnim.onfinish=null;tabExitAnim.cancel();tabExitAnim=null}
+let tabEntryTimer=0;
+function show(t){
+ const ni=TABS.indexOf(t);if(ni<0)return;
+ const oi=TABS.indexOf(CT),dir=ni>=oi?1:-1,same=t===CT,tok=++swTok;
  clearTimeout(tabEntryTimer);
  $$('section.tab-cards-in').forEach(x=>x.classList.remove('tab-cards-in'));
  NB().forEach((b,i)=>{const on=i===ni,was=b.classList.contains('on');b.classList.toggle('on',on);b.classList.remove('hv');if(on&&!was){startIcons(b,TABS[i]);pop(b)}if(!on&&was)stopIcons(b)});
  indTo(ni);CT=t;document.body.dataset.tab=t;manageClock();
- const nw=document.querySelector('section[data-s="'+t+'"]'),old=[...document.querySelectorAll('section')].find(x=>!x.hidden&&x!==nw);
- const enter=()=>{if(tok!==swTok)return;
-  // Compute tab data before showing content, avoiding DOM churn during its bounce.
-  if(t==='stats')chart();if(t==='log')list();if(t==='pay')days();if(t==='out')outlook();
-  nw.style.setProperty('--dx',same?0:dir);
-  $$('section').forEach(x=>{x.hidden=x!==nw});
-  scrollTo({top:0});if(t==='home')tick();
-  if(!same&&!calm()){
-   // All top-level content gets its old spring/fall entrance, not a page-wide fade.
-   nw.classList.add('tab-cards-in');
-   // Release will-change and CSS animation after the last stagger completes.
-   tabEntryTimer=setTimeout(()=>{nw.classList.remove('tab-cards-in');tabEntryTimer=0},1020);
-  }
- };
- if(old&&old.animate&&!same&&!calm()){
-  // Fast, compositor-only echo of the original outgoing page fall.
-  const a=old.animate([{opacity:1,transform:'translate3d(0,0,0) scale(1)'},{opacity:0,transform:`translate3d(${-dir*38}px,11px,0) scale(.975)`}],{duration:115,easing:'ease-in',fill:'forwards'});
-  tabExitAnim=a;
-  a.onfinish=()=>{a.cancel();if(tabExitAnim===a)tabExitAnim=null;enter()};
-  a.oncancel=()=>{if(tabExitAnim===a)tabExitAnim=null};
- }else enter()
+ const nw=document.querySelector('section[data-s="'+t+'"]');
+ // Reuse DOM. Update only the destination, not all five inactive sections.
+ if(t==='stats'){chart();renderStatsTotals(totalsCache||sums())}
+ else if(t==='log')list();else if(t==='pay')days();else if(t==='out')outlook();
+ nw.style.setProperty('--dx',same?0:dir);
+ $$('section').forEach(x=>{x.hidden=x!==nw});
+ // Don't force an Android WebView viewport scroll/compositing sync if already at top.
+ if(window.scrollY>1)document.scrollingElement.scrollTop=0;
+ if(t==='home')tick();
+ if(!same&&!calm()){
+  // Keep the original 600ms staggered falling cards fully intact.
+  nw.classList.add('tab-cards-in');
+  tabEntryTimer=setTimeout(()=>{if(tok===swTok)nw.classList.remove('tab-cards-in');tabEntryTimer=0},1020);
+ }
 }
 function spark(b){for(let i=0;i<8;i++){const s=document.createElement('b'),a=i/8*6.283;s.className='spk2';s.style.setProperty('--x',Math.cos(a)*(46+i%2*14)+'px');s.style.setProperty('--y',Math.sin(a)*(28+i%2*8)+'px');b.appendChild(s);setTimeout(()=>s.remove(),750)}}
 function split(el){const t=el.dataset.w||(el.dataset.w=el.textContent);el.innerHTML=[...t].map((c,i)=>`<i style="--i:${i}">${c===' '?'&nbsp;':c}</i>`).join('')}
@@ -642,10 +716,10 @@ document.addEventListener('click',e=>{const c=e.target.closest('.cb');if(c){c.cl
 /* Single original-speed ripple and calm physically synchronized card responses.
    The travel easing is the ORIGINAL cubic-bezier(.2,.6,.3,1), not linear.
    Invert its y progress to obtain the matching time for each contact radius. */
+/* Elastic content-wave study: single ring + position-synced per-content rubber-band. */
 const rippleReactions=new Map();
 function rippleArrival(progress){
- const p=Math.max(0,Math.min(1,progress));
- let lo=0,hi=1;
+ const p=Math.max(0,Math.min(1,progress));let lo=0,hi=1;
  for(let i=0;i<18;i++){
   const u=(lo+hi)/2,v=1-u;
   const y=3*v*v*u*.6+3*v*u*u+u*u*u;
@@ -654,11 +728,34 @@ function rippleArrival(progress){
  const u=(lo+hi)/2,v=1-u;
  return 3*v*v*u*.2+3*v*u*u*.3+u*u*u;
 }
+/* Curated existing DOM targets: no letter splitting, extra markup, or new layout. */
+function contentWaveTargets(){
+ const home=document.querySelector('section[data-s="home"]');
+ if(!home||home.hidden)return[];
+ const selection=[
+  '.top .hi','.top .cb','.asst > span',
+  '.card .cb','.card .t','.card .t2','.card .sup','.card .lbl','.card .num',
+  '.card .tg','.card .chip','.card .ms','.card .bigt',
+  '.card .grow > b','.card small','.card .live-ch span',
+  '.clock .live-ch','.clock .row > *',
+  '.dt .dti','.dt .dtl i','.dt .t2','.dt .sup','.dt .lbl','.dt .num',
+  '.nav button .pill','.nav button .nl'
+ ].join(',');
+ const nodes=[...document.querySelectorAll(selection)];
+ const seen=new Set();return nodes.filter(el=>{
+  if(seen.has(el)||el.closest('section[hidden]'))return false;
+  if(el.closest('#clk')||el.closest('.motion-studio'))return false;
+  if(el.matches('.ms')&&el.closest('.cb,.pill,.dt'))return false; // The parent icon box reacts instead.
+  if(el.matches('.live-ch span')&&el.parentElement.matches('.live-ch'))return false;
+  seen.add(el);return true;
+ });
+}
 function wave(x,y,out){
  if(calm())return;
  const duration=1000*(out?DS.rippleOut:DS.rippleIn),startRadius=12.6;
  const corners=[[0,0],[innerWidth,0],[0,innerHeight],[innerWidth,innerHeight]];
  const far=Math.max(...corners.map(([cx,cy])=>Math.hypot(cx-x,cy-y)))+24;
+ // Exactly one ring; its transform matches the curve used for content contact.
  const ring=document.createElement('div');ring.className='wv2'+(out?' o':'');
  ring.style.left=x+'px';ring.style.top=y+'px';
  ring.style.setProperty('--wave-reach',String(far/startRadius));
@@ -666,40 +763,77 @@ function wave(x,y,out){
  document.body.appendChild(ring);
  ring.addEventListener('animationend',e=>{if(e.target===ring)ring.remove()},{once:true});
  setTimeout(()=>ring.remove(),duration+150);
- const selector='.top,.asst,section[data-s="home"] .card,section[data-s="home"] .dt,section[data-s="home"] .live-ch,.nav button';
- document.querySelectorAll(selector).forEach(el=>{
-  const r=el.getBoundingClientRect();
-  if(!r.width||!r.height||r.bottom<=0||r.top>=innerHeight||r.right<=0||r.left>=innerWidth)return;
+ const mode=mpSettings[mpMode];const amplitude=mpMode==='subtle'?1.65:mpMode==='balanced'?3.25:5.25;
+ const nodes=contentWaveTargets();
+ // Read all geometry once; stagger contact based on ring radius, never the index of an element.
+ const measured=nodes.map(el=>({el,r:el.getBoundingClientRect()})).filter(({r})=>
+   r.width>0&&r.height>0&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth);
+ for(const {el,r} of measured){
   const cx=r.left+r.width/2,cy=r.top+r.height/2;
-  const dx=cx-x,dy=cy-y,dist=Math.hypot(dx,dy);
-  const nearX=Math.max(r.left-x,0,x-r.right),nearY=Math.max(r.top-y,0,y-r.bottom);
-  const near=Math.hypot(nearX,nearY);
-  const edgeFar=Math.max(Math.hypot(r.left-x,r.top-y),Math.hypot(r.left-x,r.bottom-y),Math.hypot(r.right-x,r.top-y),Math.hypot(r.right-x,r.bottom-y));
-  const contact=out?edgeFar:near;
+  const dx=cx-x,dy=cy-y,dist=Math.max(1,Math.hypot(dx,dy));
+  // Optical contact: synchronize the front with the visual center of each
+  // label, number, icon or glyph. Large boxes reacted too early when their
+  // corner was hit; letter-sized rectangles now follow in genuine sequence.
+  // The ring has a ~12.6px radius at transform scale 1.
+  const isGlyph=el.matches('.dtl i');
+  const edgeAdvance=isGlyph?0:Math.min(5,Math.min(r.width,r.height)*.14);
+  const contact=Math.max(startRadius,dist-(out?-edgeAdvance:edgeAdvance));
   const fraction=out?(far-contact)/(far-startRadius):(contact-startRadius)/(far-startRadius);
-  const delay=duration*rippleArrival(fraction);
+  const delay=Math.max(0,Math.round(duration*rippleArrival(fraction)));
   const previous=rippleReactions.get(el);if(previous){previous.cancel();rippleReactions.delete(el)}
-  if(typeof el.animate!=='function')return;
-  const ux=dx/Math.max(1,dist),uy=dy/Math.max(1,dist);
-  const travel=el.matches('.nav button')?2.5:el.matches('.live-ch')?3.2:5;
-  const direction=out?-1:1;
-  const tx=(direction*ux*travel).toFixed(2),ty=(direction*uy*travel).toFixed(2);
-  const kfs=[
-   {transform:'translate3d(0,0,0) scale(1)',offset:0},
-   {transform:`translate3d(${tx}px,${ty}px,0) scale(${out?.995:1.005})`,offset:.42},
-   {transform:'translate3d(0,0,0) scale(1)',offset:1}
+  if(typeof el.animate!=='function')continue;
+  // Inward wave gently pulls text toward the clock; outward pushes away.
+  const dir=out?-1:1;
+  const weight=el.matches('.num,.bigt')?1.12:el.matches('.dtl i')?.85:el.matches('.cb,.pill,.ms,.dti')?.9:1;
+  const magnitude=amplitude*weight;
+  const tx=(dir*dx/dist*magnitude).toFixed(2),ty=(dir*dy/dist*magnitude).toFixed(2);
+  const oppositeX=(-dir*dx/dist*magnitude*.19).toFixed(2),oppositeY=(-dir*dy/dist*magnitude*.19).toFixed(2);
+  const frames=[
+   {transform:'translate3d(0,0,0)',offset:0},
+   {transform:`translate3d(${tx}px,${ty}px,0)`,offset:.37},
+   {transform:`translate3d(${oppositeX}px,${oppositeY}px,0)`,offset:.74},
+   {transform:'translate3d(0,0,0)',offset:1}
   ];
-  const anim=el.animate(kfs,{duration:650,delay:Math.round(delay),easing:'cubic-bezier(.25,.1,.25,1)',fill:'none'});
+  const anim=el.animate(frames,{delay,duration:mpMode==='subtle'?410:mpMode==='balanced'?510:600,
+    easing:'cubic-bezier(.2,.7,.28,1)',fill:'none'});
   rippleReactions.set(el,anim);
   const clear=()=>{if(rippleReactions.get(el)===anim)rippleReactions.delete(el)};
   anim.onfinish=clear;anim.oncancel=clear;
- });
+ }
 }
-$('#clk').onclick=e=>{const b=$('#clk'),r=b.getBoundingClientRect(),d=$('#dial'),x=r.left+r.width/2,y=r.top+r.height/2;
- b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop');
- if(cur){cur.out=Date.now();cur=null;d.className.baseVal='dial out';setTimeout(()=>{d.className.baseVal='dial';$('#ae').setAttribute('d','')},650);wave(x,y,true)}
- else{cur={id:Date.now(),in:Date.now(),out:null,t:type};L.push(cur);d.className.baseVal='dial';void d.getBoundingClientRect();d.className.baseVal='dial in';setTimeout(()=>d.className.baseVal='dial',1100);wave(x,y,false)}
- b.classList.toggle('on',!!cur);$('#ct').textContent=cur?'Clock out':'Clock in';ico('ci',cur?'stop':'play_arrow','');keep('log',L);build()};
+/* A small, detached snapshot of the tapped label. Animate the actual
+   glyphs independently, then hand off cleanly to the new button label.
+   No layout shifts and no letter splitting in the live button. */
+/* Clock in / out: the label and icon stay visible, swapping at the soft
+   compression point of the button spring. The single wave launches at tap. */
+let simpleClockBusy=false;
+$('#clk').onclick=e=>{
+ if(simpleClockBusy)return;
+ simpleClockBusy=true;
+ const b=$('#clk'),r=b.getBoundingClientRect(),d=$('#dial');
+ const x=r.left+r.width/2,y=r.top+r.height/2;
+ const wasClockOut=!!cur;
+ if(cur){
+  cur.out=Date.now();cur=null;d.className.baseVal='dial out';
+  setTimeout(()=>{d.className.baseVal='dial';$('#ae').setAttribute('d','')},650);
+ }else{
+  cur={id:Date.now(),in:Date.now(),out:null,t:type};
+  L.push(cur);d.className.baseVal='dial';void d.getBoundingClientRect();d.className.baseVal='dial in';
+  setTimeout(()=>d.className.baseVal='dial',1100);
+ }
+ b.classList.remove('pop','simple-clock-bounce');
+ void b.offsetWidth;
+ b.classList.add('simple-clock-bounce');
+ // Launch immediately. The card-content physics is unchanged.
+ requestAnimationFrame(()=>wave(x,y,wasClockOut));
+ b.classList.toggle('on',!!cur);
+ keep('log',L);build();
+ setTimeout(()=>{
+  $('#ct').textContent=cur?'Clock out':'Clock in';
+  ico('ci',cur?'stop':'play_arrow','');
+ },135);
+ setTimeout(()=>{b.classList.remove('simple-clock-bounce');simpleClockBusy=false},660);
+};
 $('#mc').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;metric=b.dataset.m;$$('#mc .chip').forEach(x=>x.classList.toggle('on',x===b));chart()};
 $('#ch').onclick=e=>{const b=e.target.closest('.bc');if(!b)return;sel=+b.dataset.i;chart()};
 $('#fc').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;filt=b.dataset.f;$$('#fc .chip').forEach(x=>x.classList.toggle('on',x===b));list()};
@@ -825,12 +959,52 @@ applyTheme();applyProf();profUI();applyUI();
 if(cur)type=(cur.split?cur.t2:cur.t)||'N';
 $$('#seg .dt').forEach(x=>x.classList.toggle('on',x.dataset.t===type));document.body.classList.toggle('ot2',type==='20');
 $('#ct').textContent=cur?'Clock out':'Clock in';$('#clk').classList.toggle('on',!!cur);ico('ci',cur?'stop':'play_arrow','');
-build();bkInfo();
-requestAnimationFrame(()=>{indSet(0);startIcons(NB()[0],'home')});setTimeout(()=>indSet(TABS.indexOf(CT)),500);
+build();
+requestAnimationFrame(()=>setTimeout(bkInfo,0));
+requestAnimationFrame(()=>{indSet(TABS.indexOf(CT));startIcons(NB()[0],'home')});
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>indSet(TABS.indexOf(CT)));
-notifSync(false);
+setTimeout(()=>notifSync(false),950);
 let clockTimer=0;function manageClock(){clearInterval(clockTimer);clockTimer=0;if(!document.hidden&&document.body.dataset.tab==='home'){tick();clockTimer=setInterval(tick,1000)}}
 document.addEventListener('visibilitychange',()=>{totalsCache=null;manageClock()});manageClock();
+
+/* Original-layout motion study: short-lived tap response on non-interactive card surfaces. */
+document.addEventListener('pointerdown',e=>{
+ const target=e.target.closest('.card,.item,.tcard');
+ if(!target||e.target.closest('button,input,select,textarea,a,[role="button"],.seg,.swt,.cb'))return;
+ if(target.closest('section[hidden]')||calm())return;
+ target.classList.remove('motion-tapped');void target.offsetWidth;target.classList.add('motion-tapped');
+ clearTimeout(target._motionTap);target._motionTap=setTimeout(()=>target.classList.remove('motion-tapped'),390);
+},{passive:true});
+
+/* V10: Playful is the only motion personality; no mode controls. */
+document.body.dataset.motionMode='playful';
+function mpReplay(){const b=NB()[TABS.indexOf(CT)];startIcons(b,CT);pop(b)}
+
+function mpNumber(){
+ const nums=[['net',sums().net, v=>'LKR '+m2(v)],['tod',sums().tp,v=>'LKR '+m2(v)]];
+ nums.forEach(([id,value,fmt])=>{
+  const el=document.getElementById(id);if(!el||el.closest('section')?.hidden)return;
+  const z=mpSettings[mpMode],start=performance.now(),from=value*.89;
+  const run=t=>{const k=Math.min(1,(t-start)/z.number),v=1-Math.pow(1-k,3);el.textContent=fmt(from+(value-from)*v);if(k<1)requestAnimationFrame(run);else el.textContent=fmt(value)};
+  requestAnimationFrame(run);
+  if(!calm()&&el.animate)el.animate([{transform:'translate3d(0,8px,0)',opacity:.56},{transform:'translate3d(0,-2px,0)',opacity:1,offset:.7},{transform:'none',opacity:1}],{duration:z.number,easing:'cubic-bezier(.22,.92,.28,1)'});
+ });
+}
+
+function mpFeedback(on){
+ const button=document.getElementById('clk'),z=mpSettings[mpMode];
+ // The button's single CSS bounce owns transform; avoid a competing WAAPI animation.
+ if(!calm()&&z.spark){
+  const box=button.getBoundingClientRect();const x=box.left+box.width/2,y=box.top+box.height/2;
+  for(let i=0;i<z.spark;i++){
+   const a=(i/z.spark)*Math.PI*2,e=document.createElement('i');e.className='mp-spark';e.style.left=x+'px';e.style.top=y+'px';e.style.setProperty('--sx',(Math.cos(a)*40).toFixed(1)+'px');e.style.setProperty('--sy',(Math.sin(a)*25).toFixed(1)+'px');e.style.setProperty('--spark-time',(z.pop+50)+'ms');document.body.appendChild(e);setTimeout(()=>e.remove(),z.pop+90);
+  }
+ }
+ // Home setN handles numeric interpolation; no second sums()/RAF loop.
+}
+// Original clock/ripple handler executes first; this adds tactile feedback only.
+document.getElementById('clk').addEventListener('click',()=>{requestAnimationFrame(()=>mpFeedback(!!cur))});
+
 </script>
 </body>
 </html>
