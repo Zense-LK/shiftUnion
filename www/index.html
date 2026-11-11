@@ -5,7 +5,7 @@
 <script>try{if(localStorage.getItem('ui')==='classic'){location.replace('classic.html')}}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f3edfa">
-<title>SHIFT//TRACKER v3.2 A06 single ripple</title>
+<title>Shift Union 11.5 — Playful</title>
 <link rel="preload" href="fonts2/figtree-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts2/outfit-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="fonts2.css">
@@ -278,12 +278,27 @@ body[data-motion-mode=playful] .nav button.motion-chosen .pill:after{width:7px;h
 /* Prevent page bounce from moving the fixed navigation visual layer. */
 html{overscroll-behavior-y:none;overflow-x:clip}body{overflow-x:clip}.app{overflow-x:clip}
 /* Keep the active falling-card animation and its 50ms staggers unchanged. */
+
+/* V11.5: two small, low-overhead controls on top of stable V11 navigation. */
+.top{gap:10px;align-items:center}
+.top #hi{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.demo-head{display:none;align-items:center;gap:4px;white-space:nowrap;font:800 9px 'Figtree',sans-serif;letter-spacing:.45px;padding:7px 8px;border-radius:999px;background:var(--pc);color:var(--opc);border:1px solid color-mix(in srgb,var(--p),transparent 70%)}
+body.demo-mode .demo-head{display:inline-flex}
+.privacy-btn{width:38px;height:38px;border-radius:14px;display:grid;place-items:center;flex:none;background:color-mix(in srgb,var(--s),transparent 10%);color:var(--p);border:1px solid color-mix(in srgb,var(--p),transparent 75%);touch-action:manipulation}
+.privacy-btn:active{transform:scale(.94)}.privacy-btn[aria-pressed="true"]{background:var(--pc);color:var(--opc)}
+.privacy-btn svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.privacy-btn .eye-closed{display:none}body.privacy-mode .privacy-btn .eye-open{display:none}body.privacy-mode .privacy-btn .eye-closed{display:block}
+body.privacy-mode .private-pay{filter:blur(7px);user-select:none;-webkit-user-select:none}
+body.privacy-mode[data-pay-chart="yes"] #ch .tip{filter:blur(7px)}
+.demo-settings .swt{margin-left:10px}.demo-settings .sup{line-height:1.45}
+.demo-hint{display:none;margin-top:12px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--pc),transparent 24%);color:var(--opc);font-size:12px;line-height:1.4;font-weight:600}
+body.demo-mode .demo-hint{display:block}
 </style>
 </head>
 <body data-tab="home">
 <div class="bgl"><div class="bgw" id="bgw"><div class="bl b1"></div><div class="bl b2"></div><div class="bl b3"></div><div class="glow"></div></div></div>
 <div class="app">
-  <header class="top"><div class="cb sm" id="av" data-av="1"></div><div class="hi" id="hi"></div></header>
+  <header class="top"><div class="cb sm" id="av" data-av="1"></div><div class="hi" id="hi"></div><span class="demo-head" id="demo-head" aria-label="Demo mode active">DEMO</span><button class="privacy-btn" type="button" id="privacy-btn" aria-label="Hide salary amounts" aria-pressed="false" title="Hide or reveal salary amounts"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="eye-open"><path d="M2.2 12S5.7 6.5 12 6.5 21.8 12 21.8 12 18.3 17.5 12 17.5 2.2 12 2.2 12Z"/><circle cx="12" cy="12" r="2.6"/></g><g class="eye-closed"><path d="M3.2 3.2 20.8 20.8M9.5 6.9A10 10 0 0 1 12 6.5C18.3 6.5 21.8 12 21.8 12a16 16 0 0 1-3.7 3.8M6.7 7.7C4 9.2 2.2 12 2.2 12S5.7 17.5 12 17.5a11 11 0 0 0 3.6-.6"/></g></svg></button></header>
   <div class="asst" id="cy"><span class="ms">calendar_month</span><span id="cyl"></span><span class="ms">expand_more</span></div>
 
   <section data-s="home">
@@ -349,6 +364,7 @@ html{overscroll-behavior-y:none;overflow-x:clip}body{overflow-x:clip}.app{overfl
       <label class="fl">Accent combo</label><div class="cbx"><select class="fi" id="cmb"></select><span class="dots" id="cdots"></span></div>
       <div class="nr" id="dpr" style="margin-top:8px"><span class="ms">layers</span><span class="grow">Depth &amp; shadows</span><div class="swt on" id="dpt"></div></div><input type="range" id="dps" min="0" max="1.5" step=".05">
       <div class="nr" id="lbr"><span class="ms">label</span><span class="grow">Show tab names</span><div class="swt on" id="lbt"></div></div></div>
+    <div class="card s demo-settings" id="demo-settings"><div class="row" style="align-items:center;gap:10px"><div class="cb sm" data-i="bolt" data-c="bob"></div><div class="grow"><div class="t2">Demo mode</div><div class="sup">Test the waves and controls using temporary sample shifts. Your real records stay untouched.</div></div><button type="button" id="demo-toggle" class="swt" role="switch" aria-checked="false" aria-label="Demo mode"></button></div><div class="demo-hint">Demo mode is on. The top bar shows DEMO. Clocking, shift edits, and allowances are simulated, not saved. Turn it off to return to your real data.</div></div>
     <div class="card s" id="ripple-settings">
       <div class="row" style="align-items:center;gap:10px"><span class="ms" style="font-size:24px">waves</span><div class="grow"><div class="t2">Ripple speed</div><div class="sup">Adjust how long each wave takes. Card reactions follow the wave.</div></div></div>
       <div class="ripple-control">
@@ -405,8 +421,9 @@ const lsg=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}c
 const SD={basic:30000,div:220,m15:1.5,m20:2,ss:'13:00',se:'21:15',cut:'12:00',post:true,epf:8,cyc:1,cur:'LKR',lateAllow:180,satOn:true,sa:'13:00',sb:'17:00',ta:100};
 const S=Object.assign({},SD,DEMO?{}:lsg('st2',{}));
 let H,R15,R20;const D1=864e5;const rates=()=>{H=S.basic/S.div;R15=H*S.m15;R20=H*S.m20};rates();
-const keep=(k,v)=>{if(!(DEMO&&['log','ta','st2','pick','bkt'].includes(k)))lss(k,v)};
-let DS=Object.assign({dpOn:true,dp:.7,labels:true,combo:'none',n:[0,0,0,0],rippleIn:1.2,rippleOut:1.2},lsg('v4ui',{}));const saveUI=()=>lss('v4ui',DS);
+let demoActive=false;
+const keep=(k,v)=>{if(demoActive&&['log','ta','st2','pick','bkt','cy2'].includes(k))return;if(!(DEMO&&['log','ta','st2','pick','bkt'].includes(k)))lss(k,v)};
+let DS=Object.assign({dpOn:true,dp:.7,labels:true,combo:'none',n:[0,0,0,0],rippleIn:1.2,rippleOut:1.2,demoMode:false,privacyMode:false},lsg('v4ui',{}));const saveUI=()=>lss('v4ui',DS);
 // Clamp older/corrupted stored preferences; preserve a 1.2s default on both actions.
 const rippleSeconds=v=>{const n=Number(v);return Number.isFinite(n)?Math.round(Math.max(.5,Math.min(2.5,n))*10)/10:1.2};
 DS.rippleIn=rippleSeconds(DS.rippleIn);DS.rippleOut=rippleSeconds(DS.rippleOut);
@@ -575,7 +592,7 @@ function stateOf(){if(!cur)return['Off duty','Ready when you are','bedtime','zz'
  if(n<s)return cur.in<hm(S.cut,cur.in)?['OT 1.5 active','Early start bonus','bolt','bolt']:['Pre-shift','No OT yet','hourglass_top','flip'];
  if(n<=e)return new Date(n).getDay()===6&&n>=hm(S.sa,n)&&n<hm(S.sb,n)?['Saturday OT 1.5','Half-day hours','bolt','bolt']:['On shift','Ends in '+fmt(e-n),'work','work'];
  return['OT 1.5 active','After shift end','bolt','bolt']}
-let totalsCache=null,totalsAt=0;
+let totalsCache=null,totalsAt=0;const tabCache={revision:0,seen:Object.create(null),when:Object.create(null)};
 function tick(){if(document.hidden)return;
  const n=new Date(),now=n.getTime(),home=document.body.dataset.tab==='home';
  // The full dashboard is never repainted in the background simply to advance the clock.
@@ -596,7 +613,7 @@ function renderStatsTotals(sx){
  setN('b15',sx.o15*R15,m2);setN('b20',sx.o20*R20,m2);setN('bl',sx.ld,m2);setN('be',sx.epf,m2);
  $('#s15').textContent=sx.o15.toFixed(2)+'h × '+m2(R15);$('#s20').textContent=sx.o20.toFixed(2)+'h × '+m2(R20);$('#sl').textContent=sx.late+' min · '+sx.ex+' charged'}
 
-let chartKey='';function chart(){const wk=week(),v=d=>metric==='h'?d.h:metric==='o'?d.o:d.p,mx=Math.max(1,...wk.map(v));if(sel<0)sel=Math.max(0,wk.map(d=>d.h>0).lastIndexOf(true));
+let chartKey='';function chart(){document.body.dataset.payChart=metric==='p'?'yes':'no';const wk=week(),v=d=>metric==='h'?d.h:metric==='o'?d.o:d.p,mx=Math.max(1,...wk.map(v));if(sel<0)sel=Math.max(0,wk.map(d=>d.h>0).lastIndexOf(true));
  const key=JSON.stringify([metric,sel,wk.map(d=>[d.d.getTime(),d.h,d.o,d.p])]);if(key===chartKey)return;chartKey=key;
  $('#ch').innerHTML=wk.map((d,i)=>{const p=Math.max(5,v(d)/mx*100),lb=metric==='p'?'LKR '+Math.round(v(d)):v(d).toFixed(1)+'h';return`<div class="bc${i==sel?' on':''}" data-i="${i}"><div class="tip" style="bottom:calc(${p*.78}% + 36px)">${lb}</div><div class="bar" style="height:0" data-h="${p*.78}%"></div><span class="dl">${d.d.toLocaleDateString('en',{weekday:'narrow'})}</span></div>`}).join('');
  requestAnimationFrame(()=>requestAnimationFrame(()=>$$('#ch .bar').forEach(b=>b.style.height=b.dataset.h)))}
@@ -609,11 +626,11 @@ function list(){const q=$('#sq').value.toLowerCase(),rows=L.filter(inCy).sort((a
 function label(){const[a,b]=cyc();$('#cyl').textContent=fd(a)+' – '+fd(b-D1)+' cycle'}
 // Lazy invalidation: only the currently visible screen is rendered after data changes.
 // All other sections retain their DOM and are refreshed when the user selects them.
-const build=()=>{totalsCache=null;totalsAt=0;chartKey='';outlookMotionCache=null;label();mk();
+const build=()=>{++tabCache.revision;totalsCache=null;totalsAt=0;chartKey='';outlookMotionCache=null;label();mk();
  const active=document.body.dataset.tab;
  if(active==='stats'){chart();renderStatsTotals(sums())}
  else if(active==='pay')days();else if(active==='log')list();else if(active==='out')outlook();
- if(active==='home')tick();};
+ if(active==='home')tick();tabCache.seen[active]=tabCache.revision;tabCache.when[active]=Date.now();};
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),2200)}
 const TABS=['home','stats','out','pay','log','set'];
 const NV=$('#nav'),IND=$('#ind'),BGW=$('#bgw');let CT='home',swTok=0;
@@ -694,9 +711,13 @@ function show(t){
  NB().forEach((b,i)=>{const on=i===ni,was=b.classList.contains('on');b.classList.toggle('on',on);b.classList.remove('hv');if(on&&!was){startIcons(b,TABS[i]);pop(b)}if(!on&&was)stopIcons(b)});
  indTo(ni);CT=t;document.body.dataset.tab=t;manageClock();
  const nw=document.querySelector('section[data-s="'+t+'"]');
- // Reuse DOM. Update only the destination, not all five inactive sections.
- if(t==='stats'){chart();renderStatsTotals(totalsCache||sums())}
- else if(t==='log')list();else if(t==='pay')days();else if(t==='out')outlook();
+ // Reuse rendered sections unless their data changed or a live shift has advanced.
+ const stale=tabCache.seen[t]!==tabCache.revision||(!!cur&&Date.now()-(tabCache.when[t]||0)>30000);
+ if(stale){
+  if(t==='stats'){chart();renderStatsTotals(totalsCache||sums())}
+  else if(t==='log')list();else if(t==='pay')days();else if(t==='out')outlook();
+  tabCache.seen[t]=tabCache.revision;tabCache.when[t]=Date.now();
+ }
  nw.style.setProperty('--dx',same?0:dir);
  $$('section').forEach(x=>{x.hidden=x!==nw});
  // Don't force an Android WebView viewport scroll/compositing sync if already at top.
@@ -844,15 +865,15 @@ const CPl=()=>(window.Capacitor&&window.Capacitor.Plugins)||{};
 const loc=t=>{const d=new Date(t-new Date(t).getTimezoneOffset()*6e4);return d.toISOString().slice(0,16)};
 const bkData=()=>JSON.stringify({v:3,t:Date.now(),log:L,st2:S,pick:type,ta:TA,cy2:CY,v4ui:DS,v4prof:PROF,v4pi:pi,v4tm:TM});
 function bkInfo(){const t=lsg('bkt',0),d=t?Math.floor((Date.now()-t)/864e5):0;$('#bks').textContent=t?'Last backup: '+fd(t)+(d?' ('+d+' days ago)':' (today)'):'Never backed up'}
-async function bkExport(){const j=bkData(),name='shift-backup-'+dk(Date.now())+'.json',P=CPl();
+async function bkExport(){if(demoActive){toast('Leave Demo mode to back up your real data');return}const j=bkData(),name='shift-backup-'+dk(Date.now())+'.json',P=CPl();
  if(DEMO){toast('Preview: the app opens the share sheet here');return}
  try{if(P.Filesystem&&P.Share){const r=await P.Filesystem.writeFile({path:name,data:j,directory:'CACHE',encoding:'utf8'});await P.Share.share({title:'Shift Tracker backup',files:[r.uri]})}
   else{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([j],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();a.remove()}
   lss('bkt',Date.now());bkInfo();toast('Backup ready')}
  catch(e){if(!/cancel/i.test(String(e&&e.message||e))){try{navigator.clipboard.writeText(j);toast('Export failed. Backup copied to clipboard')}catch(_){toast('Export failed')}}}}
-function restore(txt){if(DEMO){toast('Preview: import is disabled');return}
+function restore(txt){if(demoActive){toast('Leave Demo mode before importing a backup');return}if(DEMO){toast('Preview: import is disabled');return}
  try{const o=JSON.parse(txt);if(!Array.isArray(o.log))throw 0;lss('log',o.log);if(o.st2)lss('st2',o.st2);if(o.pick)lss('pick',o.pick);if(o.ta)lss('ta',o.ta);if(o.cy2)lss('cy2',o.cy2);if(o.v4ui)lss('v4ui',o.v4ui);if(o.v4prof)lss('v34prof',o.v4prof);if(o.v4pi!=null)lss('v34pi',o.v4pi);if(o.v4tm)lss('v34tm',o.v4tm);lss('bkt',Date.now());location.reload()}catch(e){toast('That is not a valid backup. Nothing was changed')}}
-$('#bk').onclick=bkExport;$('#im').onclick=()=>$('#bkf').click();
+$('#bk').onclick=bkExport;$('#im').onclick=()=>{if(demoActive){toast('Leave Demo mode to import a backup');return}$('#bkf').click()};
 $('#bkf').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>restore(r.result);r.readAsText(f)};
 /* shift editor */
 let edId=null;
@@ -871,7 +892,7 @@ $('#e_s').onclick=()=>{const a=new Date($('#e_in').value).getTime(),ov=$('#e_out
 /* pay rules */
 const PF=[['basic','Basic salary','number'],['cur','Currency','text'],['div','Hourly divisor (basic ÷ this)','number'],['m15','OT 1.5 multiplier','number'],['m20','OT 2.0 multiplier','number'],['ss','Shift start','time'],['se','Shift end','time'],['cut','Early OT 1.5 if check-in before','time'],['post','Hours after shift end are OT 1.5','chk'],['epf','EPF employee %','number'],['lateAllow','Late allowance (minutes per cycle)','number'],['satOn','Saturday half-day is OT 1.5','chk'],['sa','Saturday OT from','time'],['sb','Saturday OT until','time'],['ta','Transport allowance per day','number']];
 function pfUI(){$('#pff').innerHTML=PF.map(([k,l,t])=>t==='chk'?`<div class="nr" data-k="${k}"><span class="grow">${l}</span><div class="swt${S[k]?' on':''}"></div></div>`:`<label>${l}</label><input id="pf_${k}" type="${t}" step="any" value="${S[k]}">`).join('')}
-$('#pr').onclick=()=>{pfUI();$('#ps2').classList.add('on');$('#scr').classList.add('on')};
+$('#pr').onclick=()=>{if(demoActive){toast('Pay rules are locked during Demo mode');return}pfUI();$('#ps2').classList.add('on');$('#scr').classList.add('on')};
 $('#pff').onclick=e=>{const r=e.target.closest('.nr');if(r)r.querySelector('.swt').classList.toggle('on')};
 $('#pf_x').onclick=()=>closeAll();
 $('#pf_s').onclick=()=>{PF.forEach(([k,l,t])=>{if(t==='chk'){S[k]=$('#pff [data-k="'+k+'"] .swt').classList.contains('on');return}const v=$('#pf_'+k).value;if(t==='number'){const n=parseFloat(v);if(!isNaN(n))S[k]=n}else if(v)S[k]=v});
@@ -885,7 +906,7 @@ $('#cy').onclick=()=>{$('#cd').value=CY.day;const[a,b]=cyc();$('#cf').value=CY.f
 $('#cm').onclick=e=>{const b=e.target.closest('button');if(!b)return;CY.mode=b.dataset.m;$$('#cm button').forEach(x=>x.classList.toggle('on',x===b));$('#cr').hidden=CY.mode!=='rule';$('#cc').hidden=CY.mode==='rule';cprev()};
 ['cd','cf','cto'].forEach(i=>$('#'+i).onchange=cprev);
 $('#scr').onclick=closeAll;$('#cx').onclick=()=>sheet(false);
-$('#ca').onclick=()=>{if(CY.mode==='rule')CY.day=+$('#cd').value;else{if(!$('#cf').value||!$('#cto').value||$('#cto').value<$('#cf').value){toast('Pick a valid date range');return}CY.from=$('#cf').value;CY.to=$('#cto').value}sel=-1;lss('cy2',CY);if(CY.mode==='rule'){S.cyc=CY.day;keep('st2',S)}sheet(false);build();toast('Cycle updated')};
+$('#ca').onclick=()=>{if(demoActive){toast('Change cycle settings after leaving Demo mode');sheet(false);return}if(CY.mode==='rule')CY.day=+$('#cd').value;else{if(!$('#cf').value||!$('#cto').value||$('#cto').value<$('#cf').value){toast('Pick a valid date range');return}CY.from=$('#cf').value;CY.to=$('#cto').value}sel=-1;lss('cy2',CY);if(CY.mode==='rule'){S.cyc=CY.day;keep('st2',S)}sheet(false);build();toast('Cycle updated')};
 /* settings: palettes + notifications */
 const COMBOS=[['none','Palette default'],['lm','Lilac + Mint',275,145,345],['ps','Peach + Sky',22,205,48],['rt','Rose + Teal',340,175,45],['lv','Lime + Violet',82,268,322],['oc','Ocean + Coral',215,8,160],['gp','Gold + Plum',45,300,172]];
 const K=['bg','m1','m2','m3','s','os','pc','opc','sc','osc','tc','otc','ec','oec','dk','odk','p','op','hand','fg','hot','ohot'];
@@ -955,6 +976,54 @@ $('#cmb').innerHTML=COMBOS.map(c=>`<option value="${c[0]}">${c[1]}</option>`).jo
 $('#cmb').onchange=e=>{DS.combo=e.target.value;saveUI();applyTheme();applyUI()};
 $('#dpr').onclick=()=>{DS.dpOn=!DS.dpOn;saveUI();applyUI()};$('#dps').oninput=e=>{DS.dp=parseFloat(e.target.value);saveUI();applyUI()};
 $('#lbr').onclick=()=>{DS.labels=!DS.labels;saveUI();applyUI();requestAnimationFrame(()=>indSet(TABS.indexOf(CT)))};
+
+/* V11.5 ephemeral demo sandbox and visual salary privacy. */
+let demoSnapshot=null;
+function demoSamples(){
+ const now=new Date(),samples=[];
+ for(let i=15;i>=1;i--){const d=new Date(now);d.setDate(d.getDate()-i);if(d.getDay()===0)continue;
+  d.setHours(i%4===0?11:13,i%3===0?10:0,0,0);
+  const start=d.getTime(),end=start+(i%4===0?9:8)*36e5;
+  samples.push({id:start,in:start,out:end,t:i%5===0?'20':'N'});
+ }
+ return samples;
+}
+function syncDemoChrome(){
+ document.body.classList.toggle('demo-mode',demoActive);
+ const btn=$('#demo-toggle');btn.classList.toggle('on',demoActive);btn.setAttribute('aria-checked',String(demoActive));
+}
+function setDemoMode(active,persist=true,render=true){
+ active=!!active;if(active===demoActive){syncDemoChrome();return}
+ if(active){
+  demoSnapshot={L,cur,type,TA,CY:{...CY}};
+  L=demoSamples();TA={};cur=null;type='N';
+ }else{
+  if(demoSnapshot){L=demoSnapshot.L;cur=demoSnapshot.cur;type=demoSnapshot.type;TA=demoSnapshot.TA;Object.assign(CY,demoSnapshot.CY)}
+  demoSnapshot=null;
+ }
+ demoActive=active;DS.demoMode=active;
+ if(persist)saveUI();syncDemoChrome();
+ if(render){
+  $$ ('#seg .dt').forEach(b=>b.classList.toggle('on',b.dataset.t===type));
+  document.body.classList.toggle('ot2',type==='20');
+  $('#clk').classList.toggle('on',!!cur);$('#ct').textContent=cur?'Clock out':'Clock in';ico('ci',cur?'stop':'play_arrow','');
+  build();manageClock();toast(active?'Demo mode — nothing saved':'Your real shifts restored');
+ }
+}
+function syncPrivacy(){
+ const active=!!DS.privacyMode;
+ document.body.classList.toggle('privacy-mode',active);
+ const b=$('#privacy-btn');b.setAttribute('aria-pressed',String(active));b.setAttribute('aria-label',active?'Show salary amounts':'Hide salary amounts');b.title=active?'Reveal salary':'Hide salary';
+}
+$('#privacy-btn').onclick=()=>{DS.privacyMode=!DS.privacyMode;saveUI();syncPrivacy()};
+$('#demo-toggle').onclick=()=>setDemoMode(!demoActive);
+// Class is applied to values rather than entire cards, preserving context and taps.
+const PRIVATE_IDS=['net','tod','b15','b20','bl','be','s15','s20','fl','ff','fs','bpw','pn','bgz','g1','g2','g3','gt','p_g','nxt'];
+PRIVATE_IDS.forEach(id=>{const e=document.getElementById(id);if(e)e.classList.add('private-pay')});
+// Dynamic blocks are populated on demand; CSS descendant rules cover new elements.
+const privateStyles=document.createElement('style');privateStyles.textContent='body.privacy-mode #st .num,body.privacy-mode #st .t2,body.privacy-mode #pa .pi,body.privacy-mode #bp .pi,body.privacy-mode #bp .gn,body.privacy-mode #nx .gn,body.privacy-mode #nx .nxr b,body.privacy-mode #bp .pl b{filter:blur(7px)}';document.head.appendChild(privateStyles);
+syncPrivacy();setDemoMode(!!DS.demoMode,false,false);
+
 applyTheme();applyProf();profUI();applyUI();
 if(cur)type=(cur.split?cur.t2:cur.t)||'N';
 $$('#seg .dt').forEach(x=>x.classList.toggle('on',x.dataset.t===type));document.body.classList.toggle('ot2',type==='20');
