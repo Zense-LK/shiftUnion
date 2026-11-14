@@ -446,8 +446,19 @@ const eh=()=>{const h=tH(PL.st);return h<12?Math.max(0,13-h):0};
 /* shapes + icons */
 const cookie=(n,a,r=46)=>{let d='';for(let i=0;i<=120;i++){const t=i/120*6.2832,R=r*(1+a*Math.cos(n*t));d+=(i?'L':'M')+(R*Math.cos(t)).toFixed(1)+' '+(R*Math.sin(t)).toFixed(1)}return d+'Z'};
 const ico=(id,name,cls)=>{const e=document.getElementById(id);if(!e||e.dataset.k===name+cls)return;e.dataset.k=name+cls;e.textContent=name;e.className='ms f '+(cls?'a-'+cls:'')};
-function mk(){$$('.cb[data-i],.cb[data-t]').forEach(c=>{if(c.dataset.done)return;c.dataset.done=1;const i=c.dataset.i;c.innerHTML='<svg class="ck" viewBox="-50 -50 100 100"><path/></svg>'+(i?`<span class="ms f ${c.dataset.c?'a-'+c.dataset.c:''}" ${c.id?`id="${c.id}_i"`:''}>${i}</span>`:`<span>${c.dataset.t}</span>`)});
- $$('.cb:not([data-av]) .ck path').forEach(p=>p.setAttribute('d',cookie(9,.06)));$('#face').setAttribute('d',cookie(12,.045))}
+// Render each decorative SVG path exactly once; rebuilding unchanged 121-point paths
+// across every card on each clock action was expensive on low-end WebViews.
+const iconCookiePath=cookie(9,.06),dialCookiePath=cookie(12,.045);
+function mk(){
+ $$('.cb[data-i],.cb[data-t]').forEach(c=>{
+  if(c.dataset.done)return;
+  c.dataset.done=1;
+  const i=c.dataset.i;
+  c.innerHTML='<svg class="ck" viewBox="-50 -50 100 100"><path/></svg>'+(i?`<span class="ms f ${c.dataset.c?'a-'+c.dataset.c:''}" ${c.id?`id="${c.id}_i"`:''}>${i}</span>`:`<span>${c.dataset.t}</span>`);
+  const path=c.querySelector('.ck path');if(path)path.setAttribute('d',iconCookiePath);
+ });
+ const face=$('#face');if(face&&!face.dataset.cookieReady){face.setAttribute('d',dialCookiePath);face.dataset.cookieReady='1'}
+}
 /* cycle */
 function cyc(){const n=new Date();if(CY.mode==='custom'&&CY.from&&CY.to){const a=new Date(CY.from+'T00:00'),b=new Date(CY.to+'T00:00');b.setDate(b.getDate()+1);return[a.getTime(),b.getTime()]}
  let m=n.getMonth(),y=n.getFullYear();if(n.getDate()<CY.day)m--;return[new Date(y,m,CY.day).getTime(),new Date(y,m+1,CY.day).getTime()]}
@@ -579,7 +590,15 @@ const arc=(a0,a1,r)=>{const P=a=>[r*Math.sin(a*Math.PI/180),-r*Math.cos(a*Math.P
 const ang=ts=>{const d=new Date(ts);return((d.getHours()%12)+d.getMinutes()/60)*30};
 let w='M0 11Q6 3 12 11';for(let i=24;i<=348;i+=12)w+='T'+i+' 11';$('#wp').setAttribute('d',w);
 const tw={},numberFrames={};function setN(id,v,f){const el=$('#'+id);if(!el)return;
- const previous=tw[id];tw[id]=v;
+ const previous=tw[id];
+ // Do not cancel an ongoing count-up or rewrite unchanged numbers every second.
+ if(previous!==undefined&&Math.abs(previous-v)<.01&&el.textContent){
+  // Currency / format preferences may change while the numeric value stays the same.
+  if(numberFrames[id])return;
+  const formatted=f(v);if(el.textContent!==formatted)el.textContent=formatted;
+  return;
+ }
+ tw[id]=v;
  if(numberFrames[id]){cancelAnimationFrame(numberFrames[id]);numberFrames[id]=0}
  // Changes in hidden tabs do not need animation. Neither do tiny amounts that round to the same text.
  if(previous===undefined||Math.abs(previous-v)<.01||calm()||document.hidden||el.closest('section')?.hidden){el.textContent=f(v);return}
@@ -594,6 +613,8 @@ function stateOf(){if(!cur)return['Off duty','Ready when you are','bedtime','zz'
  if(n<=e)return new Date(n).getDay()===6&&n>=hm(S.sa,n)&&n<hm(S.sb,n)?['Saturday OT 1.5','Half-day hours','bolt','bolt']:['On shift','Ends in '+fmt(e-n),'work','work'];
  return['OT 1.5 active','After shift end','bolt','bolt']}
 let totalsCache=null,totalsAt=0;const tabCache={revision:0,seen:Object.create(null),when:Object.create(null)};
+// Applying the same content is still a DOM mutation and may cause paint work.
+function setChanged(id,value){const el=$('#'+id);if(el&&el.textContent!==value)el.textContent=value}
 function tick(){if(document.hidden)return;
  const n=new Date(),now=n.getTime(),home=document.body.dataset.tab==='home';
  // The full dashboard is never repainted in the background simply to advance the clock.
@@ -602,11 +623,13 @@ function tick(){if(document.hidden)return;
  if(needTotals){totalsCache=sums();totalsAt=now}
  const sx=totalsCache,st=stateOf();
  document.body.classList.toggle('live',!!cur);
- $('#ht').textContent=st[0];$('#hs').textContent=st[1];ico('hb_i',st[2],st[3]);$('#lv').textContent=cur?'Live · '+fmt(now-cur.in):'Off duty';
- $('#dt').textContent=p2(n.getHours())+':'+p2(n.getMinutes());$('#ds').textContent=p2(n.getSeconds());$('#dd2').textContent=n.toLocaleDateString('en',{weekday:'long',day:'numeric',month:'short'});
- $('#hh').setAttribute('transform',`rotate(${ang(now)})`);$('#mh').setAttribute('transform',`rotate(${n.getMinutes()*6+n.getSeconds()/10})`);$('#sh').style.transform=`rotate(${Math.floor(now/1000)*6}deg)`;
+ setChanged('ht',st[0]);setChanged('hs',st[1]);ico('hb_i',st[2],st[3]);setChanged('lv',cur?'Live · '+fmt(now-cur.in):'Off duty');
+ setChanged('dt',p2(n.getHours())+':'+p2(n.getMinutes()));setChanged('ds',p2(n.getSeconds()));
+ const dayKey=dk(now);if(tick.dayKey!==dayKey){tick.dayKey=dayKey;setChanged('dd2',n.toLocaleDateString('en',{weekday:'long',day:'numeric',month:'short'}))}
+ const minuteKey=Math.floor(now/60000);if(tick.minuteKey!==minuteKey){tick.minuteKey=minuteKey;$('#hh').setAttribute('transform',`rotate(${ang(now)})`)}
+ $('#mh').setAttribute('transform',`rotate(${n.getMinutes()*6+n.getSeconds()/10})`);$('#sh').style.transform=`rotate(${Math.floor(now/1000)*6}deg)`;
  if(cur){let a1=ang(now);const a0=ang(cur.in);if(a1<=a0)a1+=360;$('#ae').setAttribute('d',arc(a0,Math.min(a1,a0+359),36))}else if(!$('#dial').classList.contains('out'))$('#ae').setAttribute('d','');
- setN('net',sx.net,v=>'LKR '+m2(v));setN('tod',sx.tp,v=>'LKR '+m2(v));$('#nt').textContent='OT '+(sx.o15+sx.o20).toFixed(1)+'h';$('#tt').textContent='+'+sx.th.toFixed(2)+'h';
+ setN('net',sx.net,v=>'LKR '+m2(v));setN('tod',sx.tp,v=>'LKR '+m2(v));setChanged('nt','OT '+(sx.o15+sx.o20).toFixed(1)+'h');setChanged('tt','+'+sx.th.toFixed(2)+'h');
 }
 function renderStatsTotals(sx){
  const pc=Math.min(100,sx.late/S.lateAllow*100),over=sx.late>S.lateAllow;$('#wr').setAttribute('width',Math.max(0,pc*3));$('#wave').classList.toggle('over',over);ico('lic_i',over?'alarm':'hourglass_top',over?'shake':'flip');
@@ -635,7 +658,9 @@ const build=()=>{++tabCache.revision;totalsCache=null;totalsAt=0;chartKey='';out
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),2200)}
 const TABS=['home','stats','out','pay','log','set'];
 const NV=$('#nav'),IND=$('#ind'),BGW=$('#bgw');let CT='home',swTok=0;
-const NB=()=>[...NV.querySelectorAll('button')];
+// Navigation is static. Reuse these references instead of creating a new array on every pointer event.
+const navButtons=[...NV.querySelectorAll('button')],NB=()=>navButtons;
+const tabSections=Object.fromEntries([...document.querySelectorAll('section[data-s]')].map(el=>[el.dataset.s,el]));
 const slot=i=>{const b=NB()[i],p=b.querySelector('.pill');return{x:b.offsetLeft+p.offsetLeft,y:b.offsetTop+p.offsetTop,w:p.offsetWidth||48,h:p.offsetHeight||32}};
 const IS={l:0,r:0,vl:0,vr:0,tl:0,tr:0,y:0,w:48,h:32,raf:0,t:0,drag:false,ps:0};
 function indRender(){
@@ -707,11 +732,12 @@ let tabEntryTimer=0;
 function show(t){
  const ni=TABS.indexOf(t);if(ni<0)return;
  const oi=TABS.indexOf(CT),dir=ni>=oi?1:-1,same=t===CT,tok=++swTok;
+ const old=tabSections[CT],nw=tabSections[t];
  clearTimeout(tabEntryTimer);
- $$('section.tab-cards-in').forEach(x=>x.classList.remove('tab-cards-in'));
+ // Only the active section can still carry this transition class.
+ if(old)old.classList.remove('tab-cards-in');
  NB().forEach((b,i)=>{const on=i===ni,was=b.classList.contains('on');b.classList.toggle('on',on);b.classList.remove('hv');if(on&&!was){startIcons(b,TABS[i]);pop(b)}if(!on&&was)stopIcons(b)});
- indTo(ni);CT=t;document.body.dataset.tab=t;manageClock();
- const nw=document.querySelector('section[data-s="'+t+'"]');
+ indTo(ni);CT=t;document.body.dataset.tab=t;
  // Reuse rendered sections unless their data changed or a live shift has advanced.
  const stale=tabCache.seen[t]!==tabCache.revision||(!!cur&&Date.now()-(tabCache.when[t]||0)>30000);
  if(stale){
@@ -720,10 +746,13 @@ function show(t){
   tabCache.seen[t]=tabCache.revision;tabCache.when[t]=Date.now();
  }
  nw.style.setProperty('--dx',same?0:dir);
- $$('section').forEach(x=>{x.hidden=x!==nw});
+ // Toggle only two sections. Avoid style mutations on the four tabs that are already hidden.
+ if(!same){if(old)old.hidden=true;nw.hidden=false}
  // Don't force an Android WebView viewport scroll/compositing sync if already at top.
  if(window.scrollY>1)document.scrollingElement.scrollTop=0;
- if(t==='home')tick();
+ // Start/stop the live clock once the new tab is actually visible.
+ // Previously returning Home could run tick() twice in one interaction.
+ manageClock();
  if(!same&&!calm()){
   // Keep the original 600ms staggered falling cards fully intact.
   nw.classList.add('tab-cards-in');
@@ -752,24 +781,24 @@ function rippleArrival(progress){
 }
 /* Curated existing DOM targets: no letter splitting, extra markup, or new layout. */
 function contentWaveTargets(){
- const home=document.querySelector('section[data-s="home"]');
+ const home=tabSections.home;
  if(!home||home.hidden)return[];
- const selection=[
-  '.top .hi','.top .cb','.asst > span',
+ // A wave can only touch Home, the persistent header and the nav.
+ // Avoid querying every hidden Stats, Outlook and Shifts record on each click.
+ const homeSelectors=[
   '.card .cb','.card .t','.card .t2','.card .sup','.card .lbl','.card .num',
   '.card .tg','.card .chip','.card .ms','.card .bigt',
   '.card .grow > b','.card small','.card .live-ch span',
   '.clock .live-ch','.clock .row > *',
-  '.dt .dti','.dt .dtl i','.dt .t2','.dt .sup','.dt .lbl','.dt .num',
-  '.nav button .pill','.nav button .nl'
+  '.dt .dti','.dt .dtl i','.dt .t2','.dt .sup','.dt .lbl','.dt .num'
  ].join(',');
- const nodes=[...document.querySelectorAll(selection)];
- const seen=new Set();return nodes.filter(el=>{
-  if(seen.has(el)||el.closest('section[hidden]'))return false;
-  if(el.closest('#clk')||el.closest('.motion-studio'))return false;
-  if(el.matches('.ms')&&el.closest('.cb,.pill,.dt'))return false; // The parent icon box reacts instead.
+ const nodes=[...document.querySelectorAll('.top .hi,.top .cb,.asst > span'),
+  ...home.querySelectorAll(homeSelectors),...NV.querySelectorAll('button .pill,button .nl')];
+ return nodes.filter(el=>{
+  if(el.closest('#clk'))return false;
+  if(el.matches('.ms')&&el.closest('.cb,.pill,.dt'))return false;
   if(el.matches('.live-ch span')&&el.parentElement.matches('.live-ch'))return false;
-  seen.add(el);return true;
+  return true;
  });
 }
 function wave(x,y,out){
