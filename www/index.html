@@ -462,8 +462,14 @@ function calc(e,now=Date.now()){const out=e.out||now,s1=hm(S.ss,e.in),e1=hm(S.se
  const sg=(e.split&&e.split>e.in&&e.split<out)?[{a:e.in,b:e.split,t:e.t||'N'},{a:e.split,b:out,t:e.t2||'N'}]:[{a:e.in,b:out,t:e.t||'N'}];
  sg.forEach(g=>{const x=Math.max(0,g.b-g.a)/36e5;h+=x;
   if(g.t==='15')o15+=x;else if(g.t==='20')o20+=x;
-  else{const pre=Math.max(0,Math.min(g.b,s1)-g.a)/36e5,post=Math.max(0,g.b-Math.max(g.a,e1))/36e5;
-   if(e.in<cut)o15+=pre;if(S.post)o15+=post;
+  else{const pre=Math.max(0,Math.min(g.b,s1)-g.a)/36e5;
+   if(e.in<cut)o15+=pre;
+   // Manager policy: only clock-ins strictly before noon qualify for OT 1.5 after 21:15.
+   // Retain ordinary after-shift overtime before 21:15 if the configured shift ends earlier.
+   if(S.post){const p0=Math.max(g.a,e1),p915=hm('21:15',e.in);
+    const before915=Math.max(0,Math.min(g.b,p915)-p0)/36e5;
+    const after915=e.in<hm('12:00',e.in)?Math.max(0,g.b-Math.max(p0,p915))/36e5:0;
+    o15+=before915+after915;}
    if(S.satOn&&new Date(e.in).getDay()===6)o15+=Math.max(0,Math.min(g.b,hm(S.sb,e.in))-Math.max(g.a,hm(S.sa,e.in)))/36e5}});
  if((e.t||'N')==='N'&&e.in>s1&&e.in<e1)late=Math.floor((e.in-s1)/6e4);
  return{h,o15,o20,late,tot:h}}
